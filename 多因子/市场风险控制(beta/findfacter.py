@@ -11,11 +11,14 @@ import pandas
 ts.set_token('a93f250e15311901b51e097c305d0c14d1961dd5113fa09d430b2e6b')
 pro = ts.pro_api()
 
-#TODO:1. 得到行业/概念词 2. 线性回归 3. 协方差矩阵估计 4. Newey-West调整 5. 贝叶斯压缩 6.
 
 def get_concepts():
     #ts概念词
     df = pro.concept()
+    return df
+
+def get_stocks_inconcept(concept_code):
+    df = pro.concept_detail(id=concept_code, fields='ts_code,name')
     return df
 
 def get_classes():
@@ -26,5 +29,11 @@ def get_classes():
     #有三层的
     return df1,df2,df3
 
-def factor_cal(,)
+def get_value(stock,day):
+    df = pro.daily_basic(ts_code=stock, trade_date=day, fields='ts_code,trade_date,total_mv')
+    return df.total_mv[0]
+    
 
+conce=get_concepts()
+stocks=get_stocks_inconcept(conce.code[0])
+value=get_value(stocks.ts_code[0],"20190821")
