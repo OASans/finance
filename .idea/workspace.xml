@@ -3,12 +3,13 @@
   <component name="ChangeListManager">
     <list default="true" id="1350069e-18d4-44f4-815e-cf0619940f3b" name="Default Changelist" comment="">
       <change afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/tail risk函数文档.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.49.53.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.50.05.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.50.33.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.50.43.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-29 at 00.42.53.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/imp_prob_distribution.py" beforeDir="false" afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/imp_prob_distribution.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.49.53.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.50.05.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.50.33.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-27 at 15.50.43.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/tail risk函数文档.pdf" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -51,14 +52,26 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/imp_prob_distribution.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="423">
-              <caret line="485" column="68" selection-start-line="485" selection-start-column="68" selection-end-line="485" selection-end-column="68" />
+            <state relative-caret-position="308">
+              <caret line="432" selection-start-line="432" selection-end-line="432" />
               <folding>
                 <element signature="e#184#201#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/tail risk函数文档.md">
+          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+            <state split_layout="SPLIT">
+              <first_editor relative-caret-position="222">
+                <caret line="35" column="75" selection-start-line="35" selection-start-column="75" selection-end-line="35" selection-end-column="75" />
+              </first_editor>
+              <second_editor />
             </state>
           </provider>
         </entry>
@@ -67,8 +80,8 @@
         <entry file="file://$PROJECT_DIR$/回测函数/READ ME.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="300">
-                <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
+              <first_editor relative-caret-position="438">
+                <caret line="61" column="25" selection-start-line="61" selection-start-column="25" selection-end-line="61" selection-end-column="25" />
               </first_editor>
               <second_editor />
             </state>
@@ -80,7 +93,7 @@
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
               <first_editor relative-caret-position="90">
-                <caret line="6" column="4" lean-forward="true" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
+                <caret line="6" column="4" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
               </first_editor>
               <second_editor />
             </state>
@@ -127,15 +140,15 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/定期调整与条件触发/aiqingshiPart.py" />
-        <option value="$PROJECT_DIR$/对冲+尾部风险/尾部风险/tail risk函数文档.md" />
         <option value="$PROJECT_DIR$/对冲+尾部风险/尾部风险/imp_prob_distribution.py" />
+        <option value="$PROJECT_DIR$/对冲+尾部风险/尾部风险/tail risk函数文档.md" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="79" />
     <option name="y" value="51" />
-    <option name="width" value="1245" />
+    <option name="width" value="1543" />
     <option name="height" value="999" />
   </component>
   <component name="ProjectView">
@@ -212,6 +225,7 @@
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意" />
+      <recent name="$PROJECT_DIR$/对冲+尾部风险/尾部风险" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -285,18 +299,18 @@
       <option name="presentableId" value="Default" />
       <updated>1566884280651</updated>
       <workItem from="1566884283331" duration="12741000" />
-      <workItem from="1566978224499" duration="5169000" />
+      <workItem from="1566978224499" duration="5792000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="17910000" />
+    <option name="totallyTimeSpent" value="18533000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-85" y="51" width="1245" height="999" extended-state="0" />
+    <frame x="79" y="51" width="1543" height="999" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15045719" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.120586276" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -380,24 +394,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/回测函数/READ ME.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="300">
-            <caret line="20" lean-forward="true" selection-start-line="20" selection-end-line="20" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Desktop/Screenshot 2019-08-29 at 00.42.53.png">
+    <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/图示意/Screenshot 2019-08-29 at 00.42.53.png">
       <provider selected="true" editor-type-id="images" />
     </entry>
     <entry file="file://$PROJECT_DIR$/对冲+尾部风险/READ ME.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
           <first_editor relative-caret-position="90">
-            <caret line="6" column="4" lean-forward="true" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
+            <caret line="6" column="4" selection-start-line="6" selection-start-column="4" selection-end-line="6" selection-end-column="4" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/imp_prob_distribution.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="432" selection-start-line="432" selection-end-line="432" />
+          <folding>
+            <element signature="e#184#201#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/回测函数/READ ME.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="438">
+            <caret line="61" column="25" selection-start-line="61" selection-start-column="25" selection-end-line="61" selection-end-column="25" />
           </first_editor>
           <second_editor />
         </state>
@@ -406,20 +430,10 @@
     <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/tail risk函数文档.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="375">
-            <caret line="25" column="8" lean-forward="true" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="8" />
+          <first_editor relative-caret-position="222">
+            <caret line="35" column="75" selection-start-line="35" selection-start-column="75" selection-end-line="35" selection-end-column="75" />
           </first_editor>
           <second_editor />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/imp_prob_distribution.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="423">
-          <caret line="485" column="68" selection-start-line="485" selection-start-column="68" selection-end-line="485" selection-end-column="68" />
-          <folding>
-            <element signature="e#184#201#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
