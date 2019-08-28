@@ -211,7 +211,7 @@ def impVolInterp(res_df):
 
 
 # 看涨看跌平价转换，然后计算看涨期权定价
-def callPricing(vol_after_kt, r, splitPrice):
+def callPricing(vol_after_kt, r, splitPrice, tmesh, kmesh, S):
     call_price = vol_after_kt.copy()
     for j in tmesh:
         for i in kmesh:
@@ -232,7 +232,7 @@ def callPricing(vol_after_kt, r, splitPrice):
 
 
 # 隐含概率分布（这里选取的是最近到期的日子）
-def impProbability(call_price):
+def impProbability(call_price, S):
     x = np.array(call_price.index)
     t = call_price.columns[0]
     y = np.array(list(call_price.iloc[:, 0]))
@@ -243,12 +243,12 @@ def impProbability(call_price):
         d2.append(math.exp(r * t) * ((y[i - 1] + y[i + 1] - 2 * y[i]) / (h ** 2)))
     xx = x[1:len(x) - 1]
     # 可以画个概率分布图
-    plot2 = plt.plot(xx, d2, 'b', label='diff')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.legend(loc=3)  # 设置图示的位置
-    plt.title('density of price(2017-10-17)')  # 设置标题
-    plt.show()
+    # plot2 = plt.plot(xx, d2, 'b', label='diff')
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.legend(loc=3)  # 设置图示的位置
+    # plt.title('density of price(2017-10-17)')  # 设置标题
+    # plt.show()
     # 转化为收益率概率分布
     rp = []
     rx = []
@@ -257,12 +257,12 @@ def impProbability(call_price):
         rx.append(RT)
         rp.append(d2[i] * S * math.exp(RT))
     # 概率分布图
-    plot2 = plt.plot(rx, rp, 'b', label='diff')
-    plt.xlabel('RT')
-    plt.ylabel('density')
-    plt.legend(loc=3)  # 设置图示的位置
-    plt.title('density of RT(2017-10-17)')  # 设置标题
-    plt.show()  # 显示图片
+    # plot2 = plt.plot(rx, rp, 'b', label='diff')
+    # plt.xlabel('RT')
+    # plt.ylabel('density')
+    # plt.legend(loc=3)  # 设置图示的位置
+    # plt.title('density of RT(2017-10-17)')  # 设置标题
+    # plt.show()  # 显示图片
     return rx, rp
 
 
@@ -416,7 +416,7 @@ def gevTail(rx, rp):
     plt.plot(finish_x, finish_y, 'b', label='diff')
     plt.show()
     # 至此，期权隐含概率分布施工完成
-    return finish_y
+    return finish_x, finish_y
 
 
 # 期权隐含概率分布所携带的信息
@@ -433,56 +433,57 @@ def impInfo(finish_y):
 
 
 
+def tail_risk(option_data, r, S):
 
-# 调用以上函数进行研究
-option_data = getInfo(option_data)
+    # 调用以上函数进行研究
 
-data_call, data_put = splitCallPut(option_data)
+    data_call, data_put = splitCallPut(option_data)
 
-data_call, data_put = assetPriceCallPut(data_call, data_put, r)
+    data_call, data_put = assetPriceCallPut(data_call, data_put, r)
 
-call_data, put_data = getOutofMoney(data_call, data_put)
+    call_data, put_data = getOutofMoney(data_call, data_put)
 
-call_data, put_data = impVolCal(call_data, put_data)
+    call_data, put_data = impVolCal(call_data, put_data)
 
-res_df = getRes(call_data, put_data)
+    res_df = getRes(call_data, put_data)
 
-vol_after_kt, tmesh, kmesh = impVolInterp(res_df)
+    vol_after_kt, tmesh, kmesh = impVolInterp(res_df)
 
-# 这里可以画一个50etf波动率曲面了，示例代码如下
-pylab.style.use('ggplot')
-maturityMesher, strikeMesher = np.meshgrid(tmesh, kmesh)
-pylab.figure(figsize = (12,7))
-ax = pylab.gca(projection = '3d')
-surface1 = ax.plot_surface(strikeMesher, maturityMesher, vol_after_kt*100, cmap = cm.jet)
-pylab.colorbar(surface1, shrink=0.75)
-pylab.title("50ETF期权波动率曲面(2017-10-17)")
-pylab.xlabel('Strike')
-pylab.ylabel('Maturity')
-ax.set_zlabel('Volatility(%)')
-pylab.show()
+    # 这里可以画一个50etf波动率曲面了，示例代码如下
+    # pylab.style.use('ggplot')
+    # maturityMesher, strikeMesher = np.meshgrid(tmesh, kmesh)
+    # pylab.figure(figsize = (12,7))
+    # ax = pylab.gca(projection = '3d')
+    # surface1 = ax.plot_surface(strikeMesher, maturityMesher, vol_after_kt*100, cmap = cm.jet)
+    # pylab.colorbar(surface1, shrink=0.75)
+    # pylab.title("50ETF期权波动率曲面(2017-10-17)")
+    # pylab.xlabel('Strike')
+    # pylab.ylabel('Maturity')
+    # ax.set_zlabel('Volatility(%)')
+    # pylab.show()
 
-call_price = callPricing(vol_after_kt, r ,call_data['行权价格'].min())
+    call_price = callPricing(vol_after_kt, r ,call_data['行权价格'].min(), tmesh, kmesh, S)
 
-# 这里可以画一个欧式看涨期权定价曲面，示例代码如下
-pylab.style.use('ggplot')
-maturityMesher, strikeMesher = np.meshgrid(tmesh, kmesh)
-pylab.figure(figsize = (12,7))
-ax = pylab.gca(projection = '3d')
-surface2 = ax.plot_surface(strikeMesher, maturityMesher, call_price, cmap = cm.jet)
-pylab.colorbar(surface2, shrink=0.75)
-pylab.title("欧式看涨期权定价函数(2017-10-17)")
-pylab.xlabel('Strike')
-pylab.ylabel('Maturity')
-ax.set_zlabel('Call Price')
-pylab.show()
+    # 这里可以画一个欧式看涨期权定价曲面，示例代码如下
+    # pylab.style.use('ggplot')
+    # maturityMesher, strikeMesher = np.meshgrid(tmesh, kmesh)
+    # pylab.figure(figsize = (12,7))
+    # ax = pylab.gca(projection = '3d')
+    # surface2 = ax.plot_surface(strikeMesher, maturityMesher, call_price, cmap = cm.jet)
+    # pylab.colorbar(surface2, shrink=0.75)
+    # pylab.title("欧式看涨期权定价函数(2017-10-17)")
+    # pylab.xlabel('Strike')
+    # pylab.ylabel('Maturity')
+    # ax.set_zlabel('Call Price')
+    # pylab.show()
 
-rx, rp = impProbability(call_price)
+    rx, rp = impProbability(call_price, S)
 
-probability = gevTail(rx, rp)
+    ror, probability = gevTail(rx, rp)
 
-imp_vol, imp_skew, imp_kurt = impInfo(probability)
+    imp_vol, imp_skew, imp_kurt = impInfo(probability)
 
+    return tmesh, kmesh, vol_after_kt, call_price, ror, probability, imp_vol, imp_skew, imp_kurt
 
 
 
