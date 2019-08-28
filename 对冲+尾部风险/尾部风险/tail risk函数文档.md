@@ -12,7 +12,7 @@
 
   当日可获取的所有在交易的50etf期权信息, DataFrame格式
 
-  必要信息如图![image-20190829005510490](/Users/ishi/Library/Application Support/typora-user-images/image-20190829005510490.png)
+  必要信息如图![image-20190829005510490](https://github.com/qijiale76/finance/blob/master/%E5%AF%B9%E5%86%B2%2B%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%9B%BE%E7%A4%BA%E6%84%8F/Screenshot%202019-08-29%20at%2001.53.34.png)
 
 * **r**：无风险利率，取SHIBOR（3M）
 * **S**：标的资产价格
@@ -33,7 +33,7 @@
 ## 细节说明：
 
 1. **option_data**: 参考**windApi** `w.wset("optionchain","date=2017-10-17; us_code=510050.SH;option_var=全部;call_put=全部")`的返回值所包含的内容
-   windApi获取的返回值转换为DataFrame后为下图（供参考）![Screenshot 2019-08-29 at 00.42.53](./图示意/Screenshot 2019-08-29 at 00.42.53.png)必须包含的信息有'option_code', 'exe_type', 'strike_price', 'call_put', 'expiredate'（ '期权代码', '期权类型', '行权价格', '看涨/看跌', '剩余存续期'）
+   windApi获取的返回值转换为DataFrame后为下图（供参考）![Screenshot 2019-08-29 at 00.42.53](https://github.com/qijiale76/finance/blob/master/%E5%AF%B9%E5%86%B2%2B%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%9B%BE%E7%A4%BA%E6%84%8F/Screenshot%202019-08-29%20at%2000.42.53.png)必须包含的信息有'option_code', 'exe_type', 'strike_price', 'call_put', 'expiredate'（ '期权代码', '期权类型', '行权价格', '看涨/看跌', '剩余存续期'）
 
    以及根据option_code, 从windApi获取（参考）的期权收盘价close`w.wss(list(option_data['option_code']), 'close', 'tradeDate=2017-10-17').Data[0]`
 
@@ -46,10 +46,10 @@
    
 
 ## 画图示例
-![Screenshot 2019-08-27 at 15.49.53](./图示意/Screenshot 2019-08-27 at 15.49.53.png)
+![Screenshot 2019-08-27 at 15.49.53](https://github.com/qijiale76/finance/blob/master/%E5%AF%B9%E5%86%B2%2B%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%9B%BE%E7%A4%BA%E6%84%8F/Screenshot%202019-08-27%20at%2015.49.53.png)
 
-![Screenshot 2019-08-27 at 15.50.05](./图示意/Screenshot 2019-08-27 at 15.50.05.png)
+![Screenshot 2019-08-27 at 15.50.05](https://github.com/qijiale76/finance/blob/master/%E5%AF%B9%E5%86%B2%2B%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%9B%BE%E7%A4%BA%E6%84%8F/Screenshot%202019-08-27%20at%2015.50.05.png)
 
-![Screenshot 2019-08-27 at 15.50.33](./图示意/Screenshot 2019-08-27 at 15.50.33.png)
+![Screenshot 2019-08-27 at 15.50.33](https://github.com/qijiale76/finance/blob/master/%E5%AF%B9%E5%86%B2%2B%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%9B%BE%E7%A4%BA%E6%84%8F/Screenshot%202019-08-27%20at%2015.50.33.png)
 
-![Screenshot 2019-08-27 at 15.50.43](./图示意/Screenshot 2019-08-27 at 15.50.43.png)
+![Screenshot 2019-08-27 at 15.50.43](https://github.com/qijiale76/finance/blob/master/%E5%AF%B9%E5%86%B2%2B%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%B0%BE%E9%83%A8%E9%A3%8E%E9%99%A9/%E5%9B%BE%E7%A4%BA%E6%84%8F/Screenshot%202019-08-27%20at%2015.50.43.png)
