@@ -1,5 +1,7 @@
 import tushare as ts
 import pandas as pd
+import numpy as np
+import talib
 
 def get_least_position(user_id: str, stock_code: str) -> int:
     '''
@@ -68,7 +70,7 @@ def get_stock_info(ts_code: str, time: int) -> pd.DataFrame:
     data_df = pro.daily(ts_code = ts_code, start_date = '20190701', end_date = '20190930')
     return data_df.iloc[:time]
 
-def get_stock_info(ts_code: str, time: int) -> pd.DataFrame:
+def get_stock_basic(ts_code: str, time: int) -> pd.DataFrame:
     '''
         获取股票前time个交易日的指标。
         这里用tushare做一个样例，到时候软件组可以修改本函数以调用系统内部的缓存数据。
