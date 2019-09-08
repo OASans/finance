@@ -127,6 +127,9 @@ cash为初始资金数量的浮点数
 ## 期货部分函数文档
 
 ### portfolio_beta(asset_id:list<str>,asset_amount:list<int>,cash:float, begin_t, end_t) -> float
+
+**直接调用陈鹏宇那边实现的beta系数计算**
+
 描述：
 获取组合的希腊字母值
 前置条件：
