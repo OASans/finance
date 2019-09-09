@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[81]:
 
 
 import requests
@@ -27,7 +27,7 @@ context = Context()
 
 # ### step1GetAccessToken
 
-# In[2]:
+# In[82]:
 
 
 
@@ -54,7 +54,7 @@ def step1GetAccessToken():
 step1GetAccessToken()
 
 
-# In[3]:
+# In[83]:
 
 
 context.access_token
@@ -62,7 +62,7 @@ context.access_token
 
 # ### step2GetBizToken
 
-# In[4]:
+# In[84]:
 
 
 def step2GetBizToken():
@@ -92,13 +92,13 @@ def step2GetBizToken():
 step2GetBizToken()
 
 
-# In[5]:
+# In[85]:
 
 
 context.eventId
 
 
-# In[6]:
+# In[86]:
 
 
 context.bizToken
@@ -106,7 +106,7 @@ context.bizToken
 
 # ### step3GetRealAccessToken
 
-# In[7]:
+# In[87]:
 
 
 def step3GetRealAccessToken(user_index):
@@ -131,7 +131,7 @@ def step3GetRealAccessToken(user_index):
     r = requests.post("https://sandbox.apihub.citi.com/gcb/api/password/oauth2/token/hk/gcb", data = payload, headers = headers)
     return json.loads(str(r.text))['access_token']
     
-#access_token = step3GetRealAccessToken(0)
+#access_token = step3GetRealAccessToken(2)
 #access_token
 
 
@@ -139,10 +139,10 @@ def step3GetRealAccessToken(user_index):
 
 # ### getCustomerInfo 
 
-# In[8]:
+# In[88]:
 
 
-def getCustomerInfo():
+def getCustomerInfo(access_token):
     authorization = 'Bearer '+ access_token
     u = str(uuid.uuid1())
     headers = {
@@ -171,10 +171,10 @@ def getCustomerInfo():
 
 # ### getAccounts
 
-# In[9]:
+# In[89]:
 
 
-def getAccounts():
+def getAccounts(access_token):
 #     global access_token
     authorization = 'Bearer '+ access_token
     u = str(uuid.uuid1())
@@ -187,6 +187,11 @@ def getAccounts():
     }
     r = requests.get("https://sandbox.apihub.citi.com/gcb/api/v1/accounts", headers = headers)
     info = json.loads(str(r.text))
+    
+    print(info)
+    #print(len(info['accountGroupSummary'][0]['accounts']))
+    #for i in range(len(info['accountGroupSummary'][0]['accounts'])):  
+    #    print((info['accountGroupSummary'][0]['accounts'][i]))
     
     if 'accountGroupSummary' in info.keys():
         if 'totalCurrentBalance' in info["accountGroupSummary"][0].keys():
@@ -215,12 +220,21 @@ def getAccounts():
     return totalCurrentBalance,totalAvailableBalance
 
 
+# In[90]:
+
+
+i=4
+access_token2 = step3GetRealAccessToken(i)
+print(access_token2)
+getAccounts(access_token2)
+
+
 # ### getsumofTransactions
 
-# In[10]:
+# In[91]:
 
 
-def getsumofTransactions():
+def getsumofTransactions(access_token):
 #     global access_token
     accountID='674d4a4f6a443741656e5a584a6f57665a444e685772393273615777397a4c665073305a5a2b51356f76513d'
     authorization = 'Bearer '+ access_token
@@ -244,7 +258,7 @@ def getsumofTransactions():
 
 
 
-# In[11]:
+# In[92]:
 
 
 import numpy as np
@@ -270,7 +284,7 @@ def myrand2tran(average,var,sum):
     return a
 
 
-# In[12]:
+# In[93]:
 
 
 import numpy as np
@@ -298,7 +312,7 @@ def myrand(average,var,sum):
 
 # ### buildVirUsers 
 
-# In[36]:
+# In[94]:
 
 
 import numpy as np
@@ -330,7 +344,7 @@ def buildVirUsers():
 
 # ### InData
 
-# In[108]:
+# In[95]:
 
 
 ###录入txt文件 a+' '+b...每个数字相隔一个空格
@@ -350,7 +364,7 @@ def inData(fname):
 
 # ### CalculateDist
 
-# In[105]:
+# In[96]:
 
 
 def dist(datas,indexs,centre):
@@ -363,7 +377,7 @@ def dist(datas,indexs,centre):
 
 # ### For Default Expect
 
-# In[110]:
+# In[97]:
 
 
 def mypredict(mymodel):
@@ -388,7 +402,7 @@ def mypredict(mymodel):
 
 # ### K-Means and Visualization
 
-# In[101]:
+# In[98]:
 
 
 from sklearn.cluster import KMeans
@@ -413,13 +427,74 @@ def myKMeans(DataSet):
     return model
 
 
-# In[ ]:
+# ### TransferMoney
+
+# In[157]:
+
+
+def confirmInternalTransfer(controlFlowId,access_token):
+    authorization = 'Bearer ' + access_token
+    u = str(uuid.uuid1())
+    payload = {
+        "controlFlowId": controlFlowId
+    }
+    headers = {
+        'authorization': authorization,
+        'uuid': u,
+        'accept': "application/json",
+        'client_id': client_id,
+        'content-type': "application/json"
+    }
+    r = requests.post("https://sandbox.apihub.citi.com/gcb/api/v1/moneyMovement/internalDomesticTransfers", data=json.dumps(payload), headers = headers)
+    text = json.loads(r.text)
+    if controlFlowId !="":
+        return True
+    else:
+        return False
+
+
+# In[160]:
+
+
+def createInternalTransfer(sourceAccountId, access_token, invest_amount):
+    authorization = 'Bearer ' + access_token
+    u = str(uuid.uuid1())
+    payload = {
+        "sourceAccountId": sourceAccountId,
+        "transactionAmount": invest_amount,
+        "transferCurrencyIndicator": "SOURCE_ACCOUNT_CURRENCY",
+        "payeeId": "7977557255484c7345546c4e53424766634b6c53756841672b556857626e395253334b70416449676b42673d",
+        "chargeBearer": "BENEFICIARY",
+        "fxDealReferenceNumber": "12345678",
+        "remarks": "DOM Internal Transfer"
+    }
+    headers = {
+        'authorization': authorization,
+        'client_id': client_id,
+        'uuid': u,
+        'accept':'application/json',
+        'content-type':'application/json'
+    }
+    r = requests.post("https://sandbox.apihub.citi.com/gcb/api/v1/moneyMovement/internalDomesticTransfers/preprocess", data=json.dumps(payload), headers = headers)
+    text = json.loads(r.text)
+    #print(text)
+    return confirmInternalTransfer(text['controlFlowId'],access_token)
 
 
 
+# In[164]:
 
 
-# In[113]:
+###转账成功 createInternal..会调用confirm.然后返回True ，要改的话可以改这下面的转账金额 100 
+def transfer():
+    i=0
+    access_token = step3GetRealAccessToken(i)
+    print(createInternalTransfer('355a515030616a53576b6a65797359506a634175764a734a3238314e4668627349486a676f7449463949453d',access_token,100))
+
+
+# ### Main
+
+# In[75]:
 
 
 global Income
@@ -455,9 +530,10 @@ if __name__=="__main__":
     for i in range(0,5):
         access_token = step3GetRealAccessToken(i)
         ##收入
-        income= getCustomerInfo()
+        print(access_token)
+        income= getCustomerInfo(access_token)
         ##两种余额
-        cb,ab = getAccounts()
+        cb,ab = getAccounts(access_token)
         if income==1 or cb==1 or ab == -1:
             continue
         else:
@@ -497,19 +573,6 @@ if __name__=="__main__":
     else:
         txtname="D:\研一\花旗API\indata_nodefault.txt"
         DataSet=inData(txtname)
-    
-    ##print("Income:",Income)
-    ##print("AB:",AB)
-    ##print("CB:",CB)
-    ##print("sumTran",sumTransactions)
-    ##print("TransAct:",TransAct)
-    ##print("StoreWill:",StoreWill)
-    ##print("Financialflex:",Financialflex)
-    ##print("ExpectMoney:",ExpectMoney)
-    ##print("ExpectReturn:",ExpectReturn)
-    ##print("PlanTime:",PlanTime)
-    ##print("RiskTol:",RiskTol)
-    ##print("DataSet:",DataSet)
     
     mymodel=myKMeans(DataSet)
     
