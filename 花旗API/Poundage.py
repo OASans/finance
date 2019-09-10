@@ -1,4 +1,4 @@
-def poundage(DealAmount, BuyIn=True, BCRate=0.003):
+def poundage(DealAmount, BuyIn=True, BCRate=0.002):
     
     # 用户仅在卖出股票时要缴纳印花税
     if BuyIn:
