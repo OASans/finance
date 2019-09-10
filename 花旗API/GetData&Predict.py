@@ -51,13 +51,13 @@ def step1GetAccessToken():
     context.access_token = data['access_token']
     return data['access_token']
 
-step1GetAccessToken()
+#step1GetAccessToken()
 
 
 # In[3]:
 
 
-context.access_token
+#context.access_token
 
 
 # ### step2GetBizToken
@@ -89,19 +89,19 @@ def step2GetBizToken():
         'eventId':eventId
     }
     
-step2GetBizToken()
+#step2GetBizToken()
 
 
 # In[5]:
 
 
-context.eventId
+#context.eventId
 
 
 # In[6]:
 
 
-context.bizToken
+#context.bizToken
 
 
 # ### step3GetRealAccessToken
@@ -115,6 +115,9 @@ def step3GetRealAccessToken(user_index):
     username = logins[user_index]['username']
     password = logins[user_index]['password']
     u = str(uuid.uuid1())
+    
+    step1GetAccessToken()
+    step2GetBizToken()
     payload = {
         'grant_type':'password',
         'scope':'/api',
@@ -131,7 +134,7 @@ def step3GetRealAccessToken(user_index):
     r = requests.post("https://sandbox.apihub.citi.com/gcb/api/password/oauth2/token/hk/gcb", data = payload, headers = headers)
     return json.loads(str(r.text))['access_token']
     
-#access_token = step3GetRealAccessToken(0)
+#access_token = step3GetRealAccessToken(2)
 #access_token
 
 
@@ -142,7 +145,7 @@ def step3GetRealAccessToken(user_index):
 # In[8]:
 
 
-def getCustomerInfo():
+def getCustomerInfo(access_token):
     authorization = 'Bearer '+ access_token
     u = str(uuid.uuid1())
     headers = {
@@ -174,7 +177,7 @@ def getCustomerInfo():
 # In[9]:
 
 
-def getAccounts():
+def getAccounts(access_token):
 #     global access_token
     authorization = 'Bearer '+ access_token
     u = str(uuid.uuid1())
@@ -188,6 +191,7 @@ def getAccounts():
     r = requests.get("https://sandbox.apihub.citi.com/gcb/api/v1/accounts", headers = headers)
     info = json.loads(str(r.text))
     
+    #print(info)  
     if 'accountGroupSummary' in info.keys():
         if 'totalCurrentBalance' in info["accountGroupSummary"][0].keys():
             #print(info["accountGroupSummary"][0]["totalCurrentBalance"])
@@ -215,12 +219,18 @@ def getAccounts():
     return totalCurrentBalance,totalAvailableBalance
 
 
+# In[ ]:
+
+
+
+
+
 # ### getsumofTransactions
 
 # In[10]:
 
 
-def getsumofTransactions():
+def getsumofTransactions(access_token):
 #     global access_token
     accountID='674d4a4f6a443741656e5a584a6f57665a444e685772393273615777397a4c665073305a5a2b51356f76513d'
     authorization = 'Bearer '+ access_token
@@ -251,9 +261,6 @@ import numpy as np
 from numpy.linalg import cholesky
 #import matplotlib.pyplot as plt
 def myrand2tran(average,var,sum):
-    #sampleNo = 10
-    #mu = 100067.89
-    #sigma = 800000
     mu =average
     sigma = var
     sampleNo = sum
@@ -298,7 +305,7 @@ def myrand(average,var,sum):
 
 # ### buildVirUsers 
 
-# In[36]:
+# In[13]:
 
 
 import numpy as np
@@ -330,7 +337,7 @@ def buildVirUsers():
 
 # ### InData
 
-# In[108]:
+# In[14]:
 
 
 ###录入txt文件 a+' '+b...每个数字相隔一个空格
@@ -350,7 +357,7 @@ def inData(fname):
 
 # ### CalculateDist
 
-# In[105]:
+# In[15]:
 
 
 def dist(datas,indexs,centre):
@@ -363,15 +370,15 @@ def dist(datas,indexs,centre):
 
 # ### For Default Expect
 
-# In[110]:
+# In[16]:
 
 
 def mypredict(mymodel):
     centroids=mymodel.cluster_centers_
-    ###缺省值录入时以0填进去
+    ###缺省值录入时以0填进去 txtname相应的改变
     txtname="D:\研一\花旗API\indata_default.txt"
     DataSet=inData(txtname)
-    ###获取对应的缺省位置
+    ###获取对应的缺省位置 txtname相应的改变
     index_name="D:\研一\花旗API\index_default.txt"
     IndexSet=inData(index_name)
     label=[]
@@ -388,7 +395,7 @@ def mypredict(mymodel):
 
 # ### K-Means and Visualization
 
-# In[101]:
+# In[23]:
 
 
 from sklearn.cluster import KMeans
@@ -400,17 +407,99 @@ def myKMeans(DataSet):
     X=np.array(DataSet)
     maxtimes =3000
     model=KMeans(n_clusters=K, max_iter=maxtimes, random_state=0).fit(DataSet)
-    #model.fit(DataSet)
     y_pred = model.labels_
-    print(y_pred)
-    #y_pred = KMeans(n_clusters=5, random_state=0, max_iter=maxtimes).fit_predict(X)
+    ###展示聚类结果
+    #print(y_pred)
     pca=PCA(n_components=2)
     newData=pca.fit_transform(DataSet)
     color = ['HotPink', 'Aqua', 'Chartreuse', 'yellow', 'LightSalmon']
     colors=np.array(color)[y_pred]
-    plt.scatter(newData[:, 0], newData[:, 1], c=colors)
-    plt.show()
+    #plt.scatter(newData[:, 0], newData[:, 1], c=colors)
+    ###展示聚类效果图
+    #plt.show()
     return model
+
+
+# ### TransferMoney
+
+# In[18]:
+
+
+def confirmInternalTransfer(controlFlowId,access_token):
+    authorization = 'Bearer ' + access_token
+    u = str(uuid.uuid1())
+    payload = {
+        "controlFlowId": controlFlowId
+    }
+    headers = {
+        'authorization': authorization,
+        'uuid': u,
+        'accept': "application/json",
+        'client_id': client_id,
+        'content-type': "application/json"
+    }
+    r = requests.post("https://sandbox.apihub.citi.com/gcb/api/v1/moneyMovement/internalDomesticTransfers", data=json.dumps(payload), headers = headers)
+    text = json.loads(r.text)
+    if controlFlowId !="":
+        return True
+    else:
+        return False
+
+
+# In[19]:
+
+
+def createInternalTransfer(sourceAccountId, access_token, invest_amount):
+    authorization = 'Bearer ' + access_token
+    u = str(uuid.uuid1())
+    payload = {
+        "sourceAccountId": sourceAccountId,
+        "transactionAmount": invest_amount,
+        "transferCurrencyIndicator": "SOURCE_ACCOUNT_CURRENCY",
+        "payeeId": "7977557255484c7345546c4e53424766634b6c53756841672b556857626e395253334b70416449676b42673d",
+        "chargeBearer": "BENEFICIARY",
+        "fxDealReferenceNumber": "12345678",
+        "remarks": "DOM Internal Transfer"
+    }
+    headers = {
+        'authorization': authorization,
+        'client_id': client_id,
+        'uuid': u,
+        'accept':'application/json',
+        'content-type':'application/json'
+    }
+    r = requests.post("https://sandbox.apihub.citi.com/gcb/api/v1/moneyMovement/internalDomesticTransfers/preprocess", data=json.dumps(payload), headers = headers)
+    text = json.loads(r.text)
+    #print(text)
+    return confirmInternalTransfer(text['controlFlowId'],access_token)
+
+
+
+# In[20]:
+
+
+###转账成功 createInternal..会调用confirm.然后返回True ，要改的话可以改这下面的转账金额 100 
+def transfer():
+    i=0
+    access_token = step3GetRealAccessToken(i)
+    return(createInternalTransfer('355a515030616a53576b6a65797359506a634175764a734a3238314e4668627349486a676f7449463949453d',access_token,100))
+
+
+# In[21]:
+
+
+def showNeighbors(mymodel,sample):
+    s=[]
+    s.append(sample)
+    label = mymodel.predict(s)
+    res=[]
+    for i in range(N):
+        t=[]
+        t.append(DataSet[i])
+        temp = mymodel.predict(t)
+        if temp == label:
+            res.append(DataSet[i])
+    return res
 
 
 # In[ ]:
@@ -419,7 +508,9 @@ def myKMeans(DataSet):
 
 
 
-# In[113]:
+# ### Main
+
+# In[25]:
 
 
 global Income
@@ -447,7 +538,7 @@ ExpectReturn=[]
 PlanTime=[]
 RiskTol=[]
 DataSet=[]
-N=50  ##模式1 50个数据
+N=100  ##模式1 100个数据
 method=0 ## 两种模式 0外在获得输入 1 API获得
 
 if __name__=="__main__":
@@ -455,9 +546,10 @@ if __name__=="__main__":
     for i in range(0,5):
         access_token = step3GetRealAccessToken(i)
         ##收入
-        income= getCustomerInfo()
+        #print(access_token)
+        income= getCustomerInfo(access_token)
         ##两种余额
-        cb,ab = getAccounts()
+        cb,ab = getAccounts(access_token)
         if income==1 or cb==1 or ab == -1:
             continue
         else:
@@ -495,22 +587,12 @@ if __name__=="__main__":
             temp.append(RiskTol[i])
             DataSet.append(temp)
     else:
+        #txtname相应的改变
         txtname="D:\研一\花旗API\indata_nodefault.txt"
         DataSet=inData(txtname)
     
-    ##print("Income:",Income)
-    ##print("AB:",AB)
-    ##print("CB:",CB)
-    ##print("sumTran",sumTransactions)
-    ##print("TransAct:",TransAct)
-    ##print("StoreWill:",StoreWill)
-    ##print("Financialflex:",Financialflex)
-    ##print("ExpectMoney:",ExpectMoney)
-    ##print("ExpectReturn:",ExpectReturn)
-    ##print("PlanTime:",PlanTime)
-    ##print("RiskTol:",RiskTol)
-    ##print("DataSet:",DataSet)
-    
+    #print(DataSet)
+    ##得到此问题的聚类模型
     mymodel=myKMeans(DataSet)
     
     ##K-Means 模型，预测无缺省值时调用 mymodel.predict(..)即可
@@ -518,6 +600,9 @@ if __name__=="__main__":
     ##K-Means 模型各类中心，预测有缺省值时，仅计算无缺省属性
     ##对于有缺省的预测时，缺省值以0写入文件，缺省位置也需要在另一个文件给出
     #label_2 = mypredict(mymodel)
+    
+    ##返回sample附近的点向量包括sample  sample格式[0.8,28.02,1.0,1,2,3,1]
+    ##showNeighbors(mymodel,sample)
     
 
 

@@ -12,71 +12,57 @@ import torch.optim as optim
 
 
 """
-    下面的函数用于将数据集分割为训练集和测试集
+    下面的函数将原始表示转化为训练集，用于LSTM模型
+    
+    原始表示(类型：python list)：[[a(1), a(2), ... , a(T)],
+                                   ...
+                                  [z(1), z(2), ... , z(T)]]
+            其中每个list表示某个因子连续T天的数据
+            
+    训练集(类型：numpy adarray，一共T-N个样本)[[a(1), a(2), ... , a(N)], [[a(2), ... , a(N+1)],
+                                                ...                        ...
+                                               [z(1), z(2), ... , z(N)]]  [z(2), ... , z(N+1)]]
 """
-def train_test_split(data, SEQ_LENGTH = 8, test_prop=0.15):
-    ntrain = int(len(data) *(1-test_prop))   
-    predictors = data.columns[:4]          # open, high, close, low
-    data_pred = data[predictors]
-    num_attr = data_pred.shape[1]          # 4
-    
-    result = np.empty((len(data) - SEQ_LENGTH, SEQ_LENGTH, num_attr))
-    y = np.empty((len(data) - SEQ_LENGTH, SEQ_LENGTH))
-    yopen = np.empty((len(data) - SEQ_LENGTH, SEQ_LENGTH))
-
-    for index in range(len(data) - SEQ_LENGTH):
-        result[index, :, :] = data_pred[index: index + SEQ_LENGTH]
-        y[index, :] = data_pred[index+1: index + SEQ_LENGTH + 1].close
-
+def LSTM_rawset2trainset(rawset, N):
     """
-        xtrain的大小：ntrain x SEQ_LENGTH x 4
-        ytrain的大小：ntrain x SEQ_LENGTH
+        rawset: 原始表示
+        N：训练集中样本数据的时间长度
         
-        * xtrain的每个batch为长为SEQ_LENGTH的连续序列，一共有ntrain个batch，
-          序列中每个单元都是一个四元组（open，high，close，low）
-        * ytrain的每个batch为长为SEQ_LENGTH的连续序列，一共有ntrain个batch，
-          序列中每个单元是xtrain中对应四元组所在日期的下一天的close price
-        
-        xtest 的大小：    ntest x SEQ_LENGTH x 4                
-        ytest的大小：     ntest x SEQ_LENGTH      (close price)
-        ytest_open的大小：ntest x SEQ_LENGTH      (open price)  
-        
-        * xtest的每个batch为长为SEQ_LENGTH的连续序列，一共有ntest个batch，
-          序列中每个单元都是一个四元组（open，high，close，low）
-          每一个序列仅包含一个新四元组，且在最后一个
-        * ytest的每个batch为长为SEQ_LENGTH的连续序列，一共有ntest个batch，
-          序列中每个单元是xtest中对应四元组所在日期的下一天的close price
-        
-        类型：numpy.ndarray
+        返回：trainset ndarray，其中每个元素都是一个样本，一共T-N个
+              trainlabel ndarray，其中每个元素都是一个样本，一共T-N个 
     """
-    xtrain = result[:ntrain, :, :]
-    ytrain = y[:ntrain]
+    T = len(rawset[0])
+    rawset = np.array(rawset)
     
-    xtest = result[ntrain:, :, :]
-    ytest = y[ntrain:]
+    trainset = []
+    trainlabel = []
     
-    return xtrain, xtest, ytrain, ytest
+    for i in range(T-N):
+        trainset.append(rawset[:, i:i+N])
+        trainlabel.append(rawset[:, i+1:i+N+1])
+        
+    return np.array(trainset), np.array(trainlabel)
+    
     
      
 """
     LSTM模型的定义
     
-    模型参数：input_dim : 每一刻输入的维度
-              output_dim: 输出的维度      (默认为1，即每个LSTM模型专门预测某一个指标)
-              hidden_dim: 隐层神经元个数，越大则模型复杂度越高
-              num_layers: LSTM中lstm cell个数，越大则模型复杂度越高
+    模型参数：num_of_factors: 因子个数
+              hidden_dim:     隐层神经元个数，越大则模型复杂度越高
+              num_layers:     LSTM中lstm cell个数，越大则模型复杂度越高
               
-    模型输入：[N, SEQ_LENGTH, input_dim] (N为样本个数)
-    模型输出：[N, SEQ_LENGTH]
+    模型输入：[T-N, SEQ_LENGTH, num_of_factors] (N为样本个数)
+    模型输出：[T-N, SEQ_LENGTH, num_of_factors]
     (输入输出的含义可见train_test_split函数)
     
-    这里使用LSTM模型预测未来一天的收盘价
+    这里使用LSTM模型预测未来一天的多因子值
 """
 class LSTM(nn.Module):
-
-    def __init__(self, input_dim=4, hidden_dim=15, batch_size=1, output_dim=1, num_layers=2):
+    def __init__(self, num_of_factors=3, hidden_dim=15, batch_size=1, num_layers=2):
         super(LSTM, self).__init__()
-        self.input_dim = input_dim
+        self.input_dim = num_of_factors
+        self.output_dim = num_of_factors
         self.hidden_dim = hidden_dim
         self.batch_size = batch_size
         self.num_layers = num_layers
@@ -85,7 +71,7 @@ class LSTM(nn.Module):
         self.lstm = nn.LSTM(self.input_dim, self.hidden_dim, self.num_layers)
 
         # Define the output layer
-        self.linear = nn.Linear(self.hidden_dim, output_dim)
+        self.linear = nn.Linear(self.hidden_dim, self.output_dim)
 
     def forward(self, inputs):
         outputs = []
@@ -130,41 +116,55 @@ def LSTM_train(model, xtrain, ytrain):
     
     
 """
-    LSTM模型的测试函数(或称inference)
-"""
-def LSTM_test(model, xtest, ytest):
-    # pred_test为预测结果
-    with torch.no_grad():
-        pred_test  = lstm(xtest)
-
-    plt.plot(np.array(ytest[:,-1]), label='true values')
-    plt.plot(np.array(pred_test[:,-1]), label='predicted  values')
-    plt.legend()
-    plt.title('closed price')
-    plt.show()
+    利用LSTM模型进行预测
     
+    model: 训练好的LSTM模型
+    sample: 类型为python list，形状为 [[a(1), ... , a(i)],
+                                        ...
+                                       [z(1), ... , z(i)]]
+                          返回值预测  [a(i+1),
+                                        ...
+                                       z(i+1)]
+"""
+def LSTM_predict(model, sample):
+    # 先进行预处理
+    sample = torch.from_numpy(np.array(sample))
+    sample = sample.transpose(0, 1)             # seq_length在前，num_of_factors在后
+    sample = sample.unsqueeze(0)                
+    
+    with torch.no_grad():
+        pred  = lstm(sample)
+    
+    return pred[0].tolist()[-1]                 # 返回预测值（即最后一组输出）
+ 
  
         
 if __name__ == "__main__":
-    # 加载数据
-    data = pd.read_csv('stock_data_730.csv')
-    data.set_index(["date"], inplace=True)
-    data_sorted = data.sort_index()
+    rawset = [[4.0,2.0,5.0,6.0,4.0],
+              [8.0,9.0,7.0,6.0,9.0],
+              [5.0,6.0,4.0,7.0,5.0],
+              [4.2,5.4,6.5,7.8,9.8],
+              [1.2,5.4,3.4,2.3,4.2]]
+    trainset, trainlabel = LSTM_rawset2trainset(rawset, 2)
     
-    # 划分训练集与测试集并转为tensor类型
-    xtrain, xtest, ytrain, ytest = train_test_split(data_sorted)
+    # 将ndarray转为tensor
+    trainset = torch.from_numpy(trainset)
+    trainlabel = torch.from_numpy(trainlabel)
     
-    xtrain = torch.from_numpy(xtrain)
-    ytrain = torch.from_numpy(ytrain)
-    xtest = torch.from_numpy(xtest)
-    ytest = torch.from_numpy(ytest)
+    # 将tensor的后两个维度进行交换，由[N, dim, SEQ_LENGTH]形式变成[N, SEQ_LENGTH, dim]形式
+    trainset = trainset.transpose(1,2)
+    trainlabel = trainlabel.transpose(1,2)
     
     # 构建LSTM模型
-    lstm = LSTM().double()
+    lstm = LSTM(num_of_factors=5).double()
+    
+    # 测试模型有无错误
+    out = lstm.forward(trainset)
+    print(out.shape)
     
     # 训练LSTM模型
-    lstm = LSTM_train(lstm, xtrain, ytrain)
+    lstm = LSTM_train(lstm, trainset, trainlabel)
     
-    # 测试LSTM模型
-    LSTM_test(lstm, xtest, ytest)
-    
+    # 利用LSTM模型进行预测
+    label = LSTM_predict(lstm, rawset)
+    print(label)
