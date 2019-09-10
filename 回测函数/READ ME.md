@@ -12,12 +12,10 @@ begin_asset_id 为id的list ,如['000001.SZ','000002.SZ']
 begin_asset_amount为初始资产的配置的list，对于股票单位为股数，如[1000,1000]
 begin_cash为初始资金数量的浮点数
 begin_t、end_t 为 str类型时间戳，如'2019-8-1'、'2019-08-01'、'2019-8'均合法
-delta_t为整型为触发回测函数的天数
-policy 为策略函数，形式为`policy_example1(asset_dat:Dataframe, asset_amount:list<int>,cash:float)`
-	其中asset_dat为一个Dataframe,行是自开始回测到当前前一日的开盘价信息；每一列为一项资产（与begin_asset_id相同）
-	asset_amount为当前资产配置的整型list
-	cash为当前剩余可用资金
-	输出为由policy产生的新资产配置list
+delta_t为整型为触发回测函数的天数，直接取1吧
+policy 为策略函数，计划实现4种：policy_stay_calm、policy_delta、policy_gamma、policy_beta，分别对应默认什么也不做的策略和3个套保页面的策略，两者（policy_stay_calm和其他一种）画在同一张图中做对比
+
+输出为由policy产生的新资产配置list
 
 后置条件：
 返回一个Dataframe，目前是只有一列，为总资产的价值，每一行为一个时间戳
@@ -34,31 +32,17 @@ policy 为策略函数，形式为`policy_example1(asset_dat:Dataframe, asset_am
 
 ## 使用样例
 ```python
-#一个前一日涨就加仓、跌就减仓的朴素策略
-def policy_example1(asset_dat, asset_amount,cash):
-    is_rise=asset_dat.iloc[-2]<=asset_dat.iloc[-1]
-    new_p=[]
-    for ii,i in enumerate(asset_amount):
-        if is_rise[ii]:
-            new_p+=[i+1000]
-        else:
-            new_p+=[i-1000]
-    return new_p
-
-#一个保持原样不变的对照组策略
-def policy_example2(asset_dat,asset_amount,cash):
-    return asset_amount
-    
-d=back_test(['000001.SZ','000003.SZ','000010.SZ'],[1000,1000,1000],1000000,policy_example1,'2018-9','2019-7',1)
+# use examples
+d=back_test(['000001.SZ','000010.SZ','10001677SH'],[10000,10000,0],100000,policy_stay_calm,'2019-4','2019-8',1)
 from matplotlib import pyplot as plt
-plt.plot_date(d.index,d.values,fmt='-')
-d=back_test(['000001.SZ','000003.SZ','000010.SZ'],[1000,1000,1000],1000000,policy_example2,'2018-9','2019-7',1)
-plt.plot_date(d.index,d.values,fmt='-')
+plt.figure()
+plt.plot_date(d.index,d.values,label='1',fmt='-')
 
-#输入中000003.SZ不存在，会被抛弃
-#回测时间为2018-9-1~2019-7-1，每日触发一次策略
+dd=back_test(['000001.SZ','000010.SZ','10001677SH'],[10000,10000,0],100000,policy_delta,'2019-4','2019-8',1)
+plt.plot_date(dd.index,dd.values,label='2',fmt='-')
+
+plt.legend()
+plt.show()
 ```
 
-![1566982156822](1566982156822.png)
-
-可以看出用了这样的盲目的策略之后亏得更惨也赚得更多了……
+可以看出用了delta套保还是勉强有效果的……
