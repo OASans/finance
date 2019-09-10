@@ -538,7 +538,7 @@ ExpectReturn=[]
 PlanTime=[]
 RiskTol=[]
 DataSet=[]
-N=30  ##模式1 50个数据
+N=50  ##模式1 50个数据
 method=0 ## 两种模式 0外在获得输入 1 API获得
 
 if __name__=="__main__":
