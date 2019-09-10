@@ -8,4 +8,13 @@
 
 # 备注
 
-在trigger里有所有的内容，如果不明白指标的话可以同时参考part2里面的另一种实现。
+写好的文件保存在triggers.ipynb里。
+
+调用到的外部文件：
+
+回测函数/options.py
+
+(可能，考虑到没有放进仓库) 回测函数/get_stock_info.py
+
+获取资产的基本数据/fin_set.db
+
