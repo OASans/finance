@@ -497,10 +497,23 @@ def fit_beta(protfolio_id,asset_id,asset_mount,cash,futures):
 
 
 def generate_recommend_option_delta(protfolio_id,asset_id,asset_mount,cash):
-    pass
+    sql="select * from OPTIONINFO "
+    sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','TRADECODE','EXE_PRICE','EXE_MODE','FIRST_DATE','LAST_DATE'])
+    sql="select DATE from "+sql_dat['TRADECODE'][0][-2:]+sql_dat['TRADECODE'][0][:8]
+    today=list(c.execute(sql))[-1][0]
+    today=pd.Timestamp(today)
+    sql_dat['LAST_DATE']=sql_dat['LAST_DATE'].map(pd.Timestamp)
+    sql_dat['days_left']=sql_dat['LAST_DATE']-today
+    sql_dat['days_left']=sql_dat['days_left'].map(lambda x: int(x.days))
+    sql_selected=sql_dat[np.array(sql_dat['days_left']>=40) & np.array(sql_dat['days_left']<=120)]
+    sql_selected=sql_dat[np.array(sql_dat['EXE_PRICE']>=2.3) & np.array(sql_dat['EXE_PRICE']<=2.6)]
+    sql_selected=sql_selected[sql_selected['EXE_MODE']=='认购']
+    print(len(sql_selected))
 
 def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
     pass
 
 # def portfolio_beta():
 # cpy实现
+
+# generate_recommend_option_delta('123',['000001.SZ','10001689.SH','10001697.SH'],[100000,0,0],100000)
