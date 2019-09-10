@@ -395,7 +395,7 @@ def mypredict(mymodel):
 
 # ### K-Means and Visualization
 
-# In[17]:
+# In[23]:
 
 
 from sklearn.cluster import KMeans
@@ -510,7 +510,7 @@ def showNeighbors(mymodel,sample):
 
 # ### Main
 
-# In[22]:
+# In[25]:
 
 
 global Income
@@ -538,7 +538,7 @@ ExpectReturn=[]
 PlanTime=[]
 RiskTol=[]
 DataSet=[]
-N=50  ##模式1 50个数据
+N=100  ##模式1 100个数据
 method=0 ## 两种模式 0外在获得输入 1 API获得
 
 if __name__=="__main__":
@@ -601,7 +601,7 @@ if __name__=="__main__":
     ##对于有缺省的预测时，缺省值以0写入文件，缺省位置也需要在另一个文件给出
     #label_2 = mypredict(mymodel)
     
-    ##返回sample附近的点向量包括sample  sample格式[0.8, 28.02, 1.0, 1, 2, 3, 1]
+    ##返回sample附近的点向量包括sample  sample格式[0.8,28.02,1.0,1,2,3,1]
     ##showNeighbors(mymodel,sample)
     
 
