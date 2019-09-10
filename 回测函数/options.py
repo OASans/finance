@@ -281,7 +281,7 @@ def portfolio_theta(asset_id,asset_mount,cash,begin_t,end_t):
 # @auto-fold here
 def portfolio_volatility(asset_id,asset_mount,cash,begin_t,end_t,time=10):
     total,_=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t,time)
-    total=np.log(total)
+    # total=np.log(total)
     res=total.diff(1)/total
     res=res.rolling(time).std()
     return res.dropna()
@@ -504,37 +504,3 @@ def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
 
 # def portfolio_beta():
 # cpy实现
-
-# a=fit_delta('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'10001686.SH','2019-4-2','2019-4-2')
-# print(a)
-# alpha=0.9
-# b=cal_option_amt(portfolio_total_value(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4-2','2019-4-2')[-1], '10001686.SH', alpha*a[0])
-# print(b)
-# a[-1]
-# total,_=portfolio_total_value(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4','2019-6')
-# total[-1]
-# cal_option_amt(total[-1],'10001686SH',0.5*a[-1])
-#
-# m=train_beta_model('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'IF1909')
-# m.coef_
-#
-# print(portfolio_total_value(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-1','2019-3'))
-
-# print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4-2','2019-4-2'))
-# print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4','2019-5'))
-#1
-#
-#
-# portfolio_total_value(['IF1909'],[10],100000,'2019-4','2019-5')
-#
-# a=cal_option_amt(91800,'10001677.SH',0.0,'2019-01-03')
-# print(a)
-# d=portfolio_earning_rate(['000001.SZ','10001686SH','IF1909','000010.SZ'], [1000,10,5,1000], 100000, '2019-3', '2019-7',30)
-# d
-# pd.Timestamp('2019-3')-pd.to_timedelta(1)
-# np.log(np.e)
-# data=get_futures_data('IF1909','2019-3','2019-4')
-# print(data)
-# data=get_options_data('10001686SH','2019-3','2019-4')
-# data
-# list(map(lambda x:x.days/365,data['LASTTRADE_DATE']-data.index))

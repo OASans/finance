@@ -6,11 +6,6 @@
 import pandas as pd
 import numpy as np
 import copy
-# import sqlite3
-
-# conn = sqlite3.connect('../获取资产的基本数据/fin_set.db')#连接到db
-# c = conn.cursor()#创建游标
-# c.execute('show tables')
 
 # stock_path = r'../获取资产的基本数据/股票/'
 # options_path = r'../获取资产的基本数据/期权/'
@@ -158,30 +153,6 @@ def policy_beta(asset_dat,asset_amount,cash,t1,t2,new):
     asset_amount[-1]=cal_future_amt(policy_beta.dat[len(asset_dat)-2], asset_dat.columns[-1], policy_beta.temp,str(policy_beta.dat.index[len(asset_dat)-2])[:10])
     return  asset_amount
 
-# 以下只是一个例子
-# def policy_example1(asset_dat, asset_amount,cash,t1,t2,new):
-#     # is_rise=asset_dat.iloc[-2]<=asset_dat.iloc[-1]
-#     # new_p=[]
-#     # for ii,i in enumerate(asset_amount):
-#     #     if is_rise[ii]:
-#     #         new_p+=[i+1000]
-#     #     else:
-#     #         new_p+=[i-1000]
-#     # return new_p
-#     if new:
-#         policy_example1.data=get_options_data(asset_dat.columns[-1], t1, t2)
-#         # policy_example1.data=pd.read_excel(options_path + asset_dat.columns[-1] + r'.xlsx',index_col=0)
-#         # policy_example1.data=policy_example1.data[t1:t2]
-#         policy_example1.data=list(map(lambda x:0 if x>=0 else -1/x,policy_example1.data['DELTA']))
-#         _,policy_example1.temp2=portfolio_total_value(asset_dat.columns[:-1],asset_amount[:-1],cash, t1,t2)
-#     temp=policy_example1.data[len(asset_dat)-2]
-#     asset_amount[-1]=cal_option_amt(policy_example1.temp2[len(asset_dat)-2], asset_dat.columns[-1], temp)
-#     # print(temp)
-#     if asset_amount[-1]>=5000:
-#         asset_amount[-1]=5000
-#     return  asset_amount
-
-
 
 def policy_example3(asset_dat,asset_amount,cash,t1,t2,new):
     if asset_amount[2]==0:
@@ -266,18 +237,18 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
 
 
 # use examples
-d=back_test(['000001.SZ','10001677.SH','10001686.SH'],[100000,0,0],100000,policy_stay_calm,'2019-1','2019-9',1)
-from matplotlib import pyplot as plt
-plt.figure()
-plt.plot_date(d.index,d.values,label='No Hedging',fmt='-')
-
-dd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_delta,'2019-1','2019-9',1)#10001677SH
-
-# dd=back_test(['000001.SZ','IF1909','000010.SZ'],[100000,0,100000],1000000,policy_example3,'2019-4','2019-7',1)
-plt.plot_date(dd.index,dd.values,label='ML-Delta Dynamic Hedging',fmt='-')
-print('-----------------')
-
-ddd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_gamma,'2019-1','2019-9',1)
-plt.plot_date(ddd.index,ddd.values,label='Beta Hedging',fmt='-')
-plt.legend()
-plt.show()
+# d=back_test(['000001.SZ','10001677.SH','10001686.SH'],[100000,0,0],100000,policy_stay_calm,'2019-1','2019-9',1)
+# from matplotlib import pyplot as plt
+# plt.figure()
+# plt.plot_date(d.index,d.values,label='No Hedging',fmt='-')
+#
+# dd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_delta,'2019-1','2019-9',1)#10001677SH
+#
+# # dd=back_test(['000001.SZ','IF1909','000010.SZ'],[100000,0,100000],1000000,policy_example3,'2019-4','2019-7',1)
+# plt.plot_date(dd.index,dd.values,label='ML-Delta Dynamic Hedging',fmt='-')
+# print('-----------------')
+#
+# ddd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_gamma,'2019-1','2019-9',1)
+# plt.plot_date(ddd.index,ddd.values,label='Beta Hedging',fmt='-')
+# plt.legend()
+# plt.show()
