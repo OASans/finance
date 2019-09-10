@@ -2,13 +2,19 @@
 # author Yuan Manjie
 # Date 2019.8.26
 
+
 import pandas as pd
 import numpy as np
 import copy
+# import sqlite3
 
-stock_path = r'../获取资产的基本数据/股票/'
-options_path = r'../获取资产的基本数据/期权/'
-futures_path = r'../获取资产的基本数据/期货/'
+# conn = sqlite3.connect('../获取资产的基本数据/fin_set.db')#连接到db
+# c = conn.cursor()#创建游标
+# c.execute('show tables')
+
+# stock_path = r'../获取资产的基本数据/股票/'
+# options_path = r'../获取资产的基本数据/期权/'
+# futures_path = r'../获取资产的基本数据/期货/'
 
 contract_unit=dict()
 contract_unit['50ETF']=10000
@@ -19,54 +25,7 @@ contract_unit['IH']=300
 # 获取根据id获取一段时期内证券的数据
 
 
-def get_stock_data(id, begin_t, end_t):
-    try:
-        data = pd.read_excel(stock_path + id + r'.xlsx',index_col=0)
-        data=data[begin_t:end_t]
-        return data.iloc[:,:1]
-    except :
-        return pd.DataFrame(None)
-
-
-def get_futures_data(id, begin_t, end_t):
-    try:
-        data = pd.read_excel(futures_path + id + r'.xlsx',index_col=0)
-        # data = pd.read_csv(futures_path + id + r'.csv',index_col=0,engine='python')
-        data=data[begin_t:end_t]
-        return data['OPEN']
-    except :
-        return pd.DataFrame(None)
-
-
-
-def get_options_data(id, begin_t, end_t):
-    try:
-        data = pd.read_excel(options_path + id + r'.xlsx',index_col=0)
-        # data = pd.read_csv(options_path + id + r'.csv',index_col=0,engine='python')
-        data=data[begin_t:end_t]
-        return data['OPEN']
-    except :
-        return pd.DataFrame(None)
-
-
-def is_stock(id):
-    if id[-3:] in ['.SZ']:
-        return True
-    else:
-        return False
-
-def is_futures(id):
-    if id[:2] in ['IF']:
-        return True
-    else:
-        return False
-
-def is_options(id):
-    if id[-2:] in ['SH'] and id[-3]!='.':
-        return True
-    else:
-        return False
-
+from options import get_options_data,get_futures_data,get_stock_data,is_options,is_futures,is_stock
 #根据旧持仓情况模拟交易计算新的持仓
 #同时判断合法性,现金不够、股票100整数倍等——统一四舍五入、目前不包含手续费计算？
 def cal_cash(new_p,position,cash,asset_data,asset_id,asset_data_before):
@@ -157,23 +116,55 @@ def cal_cash(new_p,position,cash,asset_data,asset_id,asset_data_before):
 # asset_amount为当前持仓情况,为list的list,即二维数组
 # cash为当前剩余现金金额
 # 返回一个新的持仓情况，即一个持有资产情况的list
-# 以下只是一个例子
-def policy_example1(asset_dat, asset_amount,cash):
-    is_rise=asset_dat.iloc[-2]<=asset_dat.iloc[-1]
-    new_p=[]
-    for ii,i in enumerate(asset_amount):
-        if is_rise[ii]:
-            new_p+=[i+1000]
-        else:
-            new_p+=[i-1000]
-    return new_p
-
-def policy_example2(asset_dat,asset_amount,cash):
+def policy_stay_calm(asset_dat,asset_amount,cash,t1,t2,new):
     return asset_amount
 
-def policy_example3(asset_dat,asset_amount,cash):
-    if asset_amount[1]==0:
-        asset_amount[1]=-1
+from options import fit_delta,cal_option_amt,portfolio_total_value,train_delta_model
+def policy_delta(asset_dat,asset_amount,cash,t1,t2,new):
+    if new:
+        train_delta_model('test', asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1])
+        policy_delta.temp=fit_delta('test',asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1],t1,t2)
+        _,policy_delta.temp2=portfolio_total_value(asset_dat.columns[:-1],asset_amount[:-1],cash, t1,t2)
+    asset_amount[-1]=cal_option_amt(policy_delta.temp2[len(asset_dat)-2], asset_dat.columns[-1], policy_delta.temp[len(asset_dat)-2])
+    if asset_amount[-1]>=5000:
+        asset_amount[-1]=5000
+    return  asset_amount
+
+def policy_gamma():
+    pass
+
+def policy_beta():
+    pass
+
+
+# 以下只是一个例子
+def policy_example1(asset_dat, asset_amount,cash,t1,t2,new):
+    # is_rise=asset_dat.iloc[-2]<=asset_dat.iloc[-1]
+    # new_p=[]
+    # for ii,i in enumerate(asset_amount):
+    #     if is_rise[ii]:
+    #         new_p+=[i+1000]
+    #     else:
+    #         new_p+=[i-1000]
+    # return new_p
+    if new:
+        policy_example1.data=get_options_data(asset_dat.columns[-1], t1, t2)
+        # policy_example1.data=pd.read_excel(options_path + asset_dat.columns[-1] + r'.xlsx',index_col=0)
+        # policy_example1.data=policy_example1.data[t1:t2]
+        policy_example1.data=list(map(lambda x:0 if x>=0 else -1/x,policy_example1.data['DELTA']))
+        _,policy_example1.temp2=portfolio_total_value(asset_dat.columns[:-1],asset_amount[:-1],cash, t1,t2)
+    temp=policy_example1.data[len(asset_dat)-2]
+    asset_amount[-1]=cal_option_amt(policy_example1.temp2[len(asset_dat)-2], asset_dat.columns[-1], temp)
+    # print(temp)
+    if asset_amount[-1]>=5000:
+        asset_amount[-1]=5000
+    return  asset_amount
+
+
+
+def policy_example3(asset_dat,asset_amount,cash,t1,t2,new):
+    if asset_amount[2]==0:
+        asset_amount[2]=5
     return asset_amount
 
 # 回测函数
@@ -184,7 +175,7 @@ def policy_example3(asset_dat,asset_amount,cash):
 #policy 为策略函数
 #以开盘价为模拟买入卖出价
 #对于错误的asset_id,目前是直接连同持仓一起扔掉
-def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, end_t,delta_t):
+def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, end_t,delta_t=1):
     asset_data=[]
     asset_keys=[]
     asset_amount=[]
@@ -198,7 +189,7 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
                 asset_keys+=[i]
                 asset_amount+=[begin_asset_amount[ii]]
         elif is_options(i):
-            temp=get_options_data(i,pd.Timestamp(begin_t),pd.Timestamp(end_t))
+            temp=get_options_data(i,pd.Timestamp(begin_t),pd.Timestamp(end_t))['OPEN']
             if len(temp)==0:
                 pass
             else:
@@ -206,39 +197,40 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
                 asset_keys+=[i]
                 asset_amount+=[begin_asset_amount[ii]]
         elif is_futures(i):
-            temp=get_futures_data(i,pd.Timestamp(begin_t),pd.Timestamp(end_t))
+            temp=get_futures_data(i,pd.Timestamp(begin_t),pd.Timestamp(end_t))['OPEN']
             if len(temp)==0:
                 pass
             else:
                 asset_data+=[temp]
                 asset_keys+=[i]
                 asset_amount+=[begin_asset_amount[ii]]
-
     if len(asset_data)==0:
         return pd.DataFrame()
     else:
-        asset_data=pd.concat(asset_data,axis=1,keys=asset_keys)
+        asset_data=pd.concat(asset_data,axis=1)
+        asset_data.columns=asset_keys
 
 
     cashes=[begin_cash]
     positions=[asset_amount]
     last_day=pd.Timestamp(begin_t)
+    new=1
     for ii,i in enumerate(asset_data.index[1:]):
         if (i-last_day).days>=delta_t:
             last_day=i
-            new_p=policy(asset_data.loc[:i],copy.deepcopy(positions[-1]),cashes[-1])
-            new_new_p,new_c=cal_cash(new_p,positions[-1],cashes[-1],asset_data.loc[i],[x[0] for x in asset_data.columns],asset_data.loc[asset_data.index[ii-1]])
+            new_p=policy(asset_data.loc[:i],copy.deepcopy(positions[-1]),cashes[-1],asset_data.index[1],asset_data.index[-1],new)
+            new=0
+            new_new_p,new_c=cal_cash(new_p,positions[-1],cashes[-1],asset_data.loc[i],asset_data.columns,asset_data.loc[asset_data.index[ii-1]])
             cashes+=[new_c]
             positions+=[new_new_p]
         else:
             cashes+=[cashes[-1]]
             positions+=[positions[-1]]
-
     #计算总收益
     total_temp=[]
     for ii,i in enumerate(asset_data.index):
         res_sum=cashes[ii]
-        for jj,j in enumerate([x[0] for x in asset_data.columns]):
+        for jj,j in enumerate(asset_data.columns):
             if is_stock(j):
                 res_sum+=asset_data.iloc[ii,jj]*positions[ii][jj]
             elif is_futures(j):
@@ -251,12 +243,18 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
 
 
 # use examples
-d=back_test(['000001.SZ','000010.SZ'],[100000,100000],1000000,policy_example2,'2019-4','2019-7',1)
+d=back_test(['000001.SZ','10001677.SH'],[10000,0],100000,policy_stay_calm,'2019-2','2019-8',1)
 from matplotlib import pyplot as plt
 plt.figure()
-plt.plot_date(d.index,d.values,label='1',fmt='-')
+plt.plot_date(d.index,d.values,label='No Hedging',fmt='-')
 print('-----------------')
-dd=back_test(['000001.SZ','IF1909','000010.SZ'],[100000,0,100000],1000000,policy_example3,'2019-4','2019-7',1)
-plt.plot_date(dd.index,dd.values,label='2',fmt='-')
+
+dd=back_test(['000001.SZ','10001677.SH'],[10000,0],100000,policy_delta,'2019-2','2019-8',1)#10001677SH
+
+# dd=back_test(['000001.SZ','IF1909','000010.SZ'],[100000,0,100000],1000000,policy_example3,'2019-4','2019-7',1)
+plt.plot_date(dd.index,dd.values,label='ML-Delta Dynamic Hedging',fmt='-')
+
+ddd=back_test(['000001.SZ','10001677.SH'],[10000,0],100000,policy_example1,'2019-2','2019-8',1)
+plt.plot_date(ddd.index,ddd.values,label='Static Hedging',fmt='-')
 plt.legend()
 plt.show()

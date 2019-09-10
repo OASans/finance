@@ -4,6 +4,10 @@
 
 import pandas as pd
 import numpy as np
+import sqlite3
+
+conn = sqlite3.connect('../获取资产的基本数据/fin_set.db')#连接到db
+c = conn.cursor()#创建游标
 
 
 contract_unit=dict()
@@ -12,73 +16,155 @@ contract_unit['IF']=300
 contract_unit['IC']=200
 contract_unit['IH']=300
 
-stock_path = r'../获取资产的基本数据/股票/'
-options_path = r'../获取资产的基本数据/期权/'
-futures_path = r'../获取资产的基本数据/期货/'
+# stock_path = r'../获取资产的基本数据/股票/'
+# options_path = r'../获取资产的基本数据/期权/'
+# futures_path = r'../获取资产的基本数据/期货/'
+
+class ID_Not_Exist_ERROR(Exception):
+    def __init__(self,id):
+        self.id=id
 
 # 获取根据id获取一段时期内证券的数据
-def get_stock_data(id, begin_t, end_t):
-    try:
-        data = pd.read_excel(stock_path + id + r'.xlsx',index_col=0)
-        if begin_t!=''and end_t!='':
-            data=data[begin_t:end_t]
-        return data.iloc[:,:1]
-    except :
-        return pd.DataFrame(None)
+# @auto-fold here
+def format_date(date):
+    pd_t=pd.Timestamp(date)
+    return str(pd_t)[:10]
 
-def get_futures_data(id, begin_t, end_t):
+# @auto-fold here
+def get_stock_data(id, begin_t='', end_t='',t_before=0):
+    new_id=id[-2:]+id[:6]
     try:
-        data = pd.read_excel(futures_path + id + r'.xlsx',index_col=0)
-        # data = pd.read_csv(futures_path + id + r'.csv',index_col=0,engine='python')
         if begin_t!=''and end_t!='':
-            data=data[begin_t:end_t]
-        return data
-    except :
-        return pd.DataFrame(None)
+            b_t=format_date(begin_t)
+            e_t=format_date(end_t)
+            sql="select \"index\" from "+new_id+" where DATE>='"+b_t+"' and DATE<='"+e_t+"'"
+            sql_dat=list(c.execute(sql))
+            b_i=sql_dat[0][0]
+            e_i=sql_dat[-1][0]
+            sql="select DATE,OPEN from "+new_id+" where \"index\">='"+str(b_i-t_before)+"' and \"index\"<='"+str(e_i)+"'"
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['date','open'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['date'])
+        else:
+            sql="select DATE,OPEN from "+new_id
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['date','open'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['date'])
 
-def get_options_data(id, begin_t, end_t):
+        # data = pd.read_excel(stock_path + id + r'.xlsx',index_col=0)
+        # if begin_t!=''and end_t!='':
+            # data=data[begin_t:end_t]
+        return sql_dat.iloc[:,1:]
+    except :
+        raise ID_Not_Exist_ERROR(id)
+
+# @auto-fold here
+def get_futures_data(id, begin_t='', end_t='',t_before=0):
+    new_id=id
     try:
-        data = pd.read_excel(options_path + id + r'.xlsx',index_col=0)
-        # data = pd.read_csv(options_path + id + r'.csv',index_col=0,engine='python')
+        if type(begin_t)==type(1):
+            sql="select \"index\" from "+new_id
+            sql_dat=list(c.execute(sql))
+            b_i=sql_dat[begin_t][0]
+            e_i=sql_dat[end_t][0]
+            sql="select * from "+new_id+" where \"index\">='"+str(b_i-t_before)+"' and \"index\"<='"+str(e_i)+"'"
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','DATE','PRESETTLE','PRECLO','OPEN','HIGH','LOW','CLOSE','SETTLE','VOLUME','AMT','OI','VWAP','OI_CHG','DELTA','GAMMA','VEGA','THETA','RHO','VOLATILITYRATIO','US_IMPLIEDVOL'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['DATE'])
         if begin_t!=''and end_t!='':
-            data=data[begin_t:end_t]
-        return data
+            b_t=format_date(begin_t)
+            e_t=format_date(end_t)
+            sql="select \"index\" from "+new_id+" where DATE>='"+b_t+"' and DATE<='"+e_t+"'"
+            sql_dat=list(c.execute(sql))
+            b_i=sql_dat[0][0]
+            e_i=sql_dat[-1][0]
+            sql="select * from "+new_id+" where \"index\">='"+str(b_i-t_before)+"' and \"index\"<='"+str(e_i)+"'"
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','DATE','PRESETTLE','PRECLO','OPEN','HIGH','LOW','CLOSE','SETTLE','VOLUME','AMT','OI','OI_CHG','VWAP','VOLRATIO'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['DATE'])
+        else:
+            sql="select * from "+new_id
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','DATE','PRESETTLE','PRECLO','OPEN','HIGH','LOW','CLOSE','SETTLE','VOLUME','AMT','OI','OI_CHG','VWAP','VOLRATIO'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['DATE'])
+        # data = pd.read_excel(futures_path + id + r'.xlsx',index_col=0)
+        # # data = pd.read_csv(futures_path + id + r'.csv',index_col=0,engine='python')
+        # if begin_t!=''and end_t!='':
+        #     data=data[begin_t:end_t]
+        return sql_dat
     except :
-        return pd.DataFrame(None)
+        raise ID_Not_Exist_ERROR(id)
 
+# @auto-fold here
+def get_options_data(id, begin_t='', end_t='',t_before=0):
+    new_id=id[-2:]+id[:8]
+    try:
+        if type(begin_t)==type(1):
+            sql="select \"index\" from "+new_id
+            sql_dat=list(c.execute(sql))
+            b_i=sql_dat[begin_t][0]
+            e_i=sql_dat[end_t][0]
+            sql="select * from "+new_id+" where \"index\">='"+str(b_i-t_before)+"' and \"index\"<='"+str(e_i)+"'"
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','DATE','PRESETTLE','PRECLO','OPEN','HIGH','LOW','CLOSE','SETTLE','VOLUME','AMT','OI','VWAP','OI_CHG','DELTA','GAMMA','VEGA','THETA','RHO','VOLATILITYRATIO','US_IMPLIEDVOL'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['DATE'])
+        elif begin_t!=''and end_t!='':
+            b_t=format_date(begin_t)
+            e_t=format_date(end_t)
+            sql="select \"index\" from "+new_id+" where DATE>='"+b_t+"' and DATE<='"+e_t+"'"
+            sql_dat=list(c.execute(sql))
+            b_i=sql_dat[0][0]
+            e_i=sql_dat[-1][0]
+            sql="select * from "+new_id+" where \"index\">='"+str(b_i-t_before)+"' and \"index\"<='"+str(e_i)+"'"
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','DATE','PRESETTLE','PRECLO','OPEN','HIGH','LOW','CLOSE','SETTLE','VOLUME','AMT','OI','VWAP','OI_CHG','DELTA','GAMMA','VEGA','THETA','RHO','VOLATILITYRATIO','US_IMPLIEDVOL'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['DATE'])
+        else:
+            sql="select * from "+new_id
+            sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','DATE','PRESETTLE','PRECLO','OPEN','HIGH','LOW','CLOSE','SETTLE','VOLUME','AMT','OI','VWAP','OI_CHG','DELTA','GAMMA','VEGA','THETA','RHO','VOLATILITYRATIO','US_IMPLIEDVOL'])
+            sql_dat.index=map(pd.Timestamp,sql_dat['DATE'])
+        sql='select EXE_PRICE,ENDDATE from OPTIONINFO where TRADECODE=\''+id+'\''
+        sql_tmp=list(c.execute(sql))
+        sql_dat['EXE_PRICE']=sql_tmp[0][0]
+        sql_dat['EXE_ENDDATE']=pd.Timestamp(sql_tmp[0][1])
+        # data = pd.read_excel(options_path + id + r'.xlsx',index_col=0)
+        # # data = pd.read_csv(options_path + id + r'.csv',index_col=0,engine='python')
+        # if begin_t!=''and end_t!='':
+        #     data=data[begin_t:end_t]
+        return sql_dat
+    except Exception as e:
+        raise ID_Not_Exist_ERROR(id)
+
+# @auto-fold here
 def is_stock(id):
-    if id[-3:] in ['.SZ']:
+    if id[-3:] in ['.SZ','.SH'] and len(id)==9:
         return True
     else:
         return False
 
+# @auto-fold here
 def is_futures(id):
-    if id[:2] in ['IF','IC','IH']:
+    if id[:2] in ['IF','IC','IH'] and len(id)==6:
         return True
     else:
         return False
 
+# @auto-fold here
 def is_options(id):
-    if id[-2:] in ['SH'] and id[-3]!='.':
+    if id[-3:] in ['.SH'] and len(id)==11:
         return True
     else:
         return False
 
-def portfolio_total_value(asset_id,asset_mount,cash,begin_t, end_t):
+# @auto-fold here
+def portfolio_total_value(asset_id,asset_mount,cash,begin_t, end_t,t_before=0):
     total=[]
     stocks=[]
     keys=[]
     stock_keys=[]
     for ii,i in enumerate(asset_id):# 到期？ 保证金不足？
         if is_stock(i):
-            temp=get_stock_data(i,begin_t,end_t)
+            temp=get_stock_data(i,begin_t,end_t,t_before)
             if len(temp)!=0:
                 keys+=[i]
                 stock_keys+=[i]
                 total+=[temp*asset_mount[ii]]
                 stocks+=[temp*asset_mount[ii]]
         elif is_futures(i):
-            temp=get_futures_data(i, begin_t, end_t)
+            temp=get_futures_data(i, begin_t, end_t,t_before)
             if len(temp)!=0:
                 keys+=[i]
                 temp['delta']=temp['OPEN'].diff(1)
@@ -92,32 +178,39 @@ def portfolio_total_value(asset_id,asset_mount,cash,begin_t, end_t):
                         break
                 total+=[temp['delta']*asset_mount[ii]]
         elif is_options(i):
-            temp=get_options_data(i,begin_t,end_t)
+            temp=get_options_data(i,begin_t,end_t,t_before)
             temp=temp.fillna(0)
             if len(temp)!=0:
                 keys+=[i]
-                total+=[temp['OPEN']*asset_mount[ii]*contract_unit[temp['US_NAME'][0]]]
+                total+=[temp['OPEN']*asset_mount[ii]*contract_unit['50ETF']]
     if len(total)==0:
         return pd.DataFrame()
     else:
         total=pd.concat(total,axis=1,keys=keys)
+        total=total.fillna(method='ffill')
+        total=total.fillna(method='bfill')
         if len(stocks)==0:
             stocks=pd.DataFrame()
         else:
             stocks=pd.concat(stocks,axis=1,keys=stock_keys)
+            stocks=stocks.fillna(method='ffill')
+            stocks=stocks.fillna(method='bfill')
     return total.sum(axis=1)+cash,stocks.sum(axis=1)
 
+# @auto-fold here
 def portfolio_delta(asset_id,asset_mount,cash,begin_t, end_t):#单个值可能不好取   单位上？
-    total,stock=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t)
+    total,stock=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t,1)
     delta=total.diff(1)/stock.diff(1)
     return delta[1:]
 
+# @auto-fold here
 def portfolio_gamma(asset_id,asset_mount,cash,begin_t, end_t):
-    total,stock=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t)
+    total,stock=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t,2)
     delta=total.diff(1)/stock.diff(1)
     gamma=delta.diff(1)/stock.diff(1)
     return gamma[2:]
 
+# @auto-fold here
 def portfolio_vega(asset_id,asset_mount,cash,begin_t,end_t):
     total_vega=[]
     keys=[]
@@ -126,7 +219,7 @@ def portfolio_vega(asset_id,asset_mount,cash,begin_t,end_t):
             temp=get_options_data(i,begin_t,end_t)
             if len(temp)!=0:
                 keys+=[i]
-                total_vega+=[temp['VEGA']*asset_mount[ii]*contract_unit[temp['US_NAME'][0]]]
+                total_vega+=[temp['VEGA']*asset_mount[ii]*contract_unit['50ETF']]
     if len(total_vega)==0:
         return pd.DataFrame()
     else:
@@ -134,6 +227,7 @@ def portfolio_vega(asset_id,asset_mount,cash,begin_t,end_t):
         total=total.fillna(0)
         return total.sum(axis=1)
 
+# @auto-fold here
 def portfolio_rho(asset_id,asset_mount,cash,begin_t,end_t):
     total_rho=[]
     keys=[]
@@ -142,7 +236,7 @@ def portfolio_rho(asset_id,asset_mount,cash,begin_t,end_t):
             temp=get_options_data(i,begin_t,end_t)
             if len(temp)!=0:
                 keys+=[i]
-                total_rho+=[temp['RHO']*asset_mount[ii]*contract_unit[temp['US_NAME'][0]]]
+                total_rho+=[temp['RHO']*asset_mount[ii]*contract_unit['50ETF']]
         elif is_futures(i):
             pass
             # temp=get_futures_data(i, begin_t, end_t)
@@ -157,6 +251,7 @@ def portfolio_rho(asset_id,asset_mount,cash,begin_t,end_t):
         total=total.fillna(0)
         return total.sum(axis=1)
 
+# @auto-fold here
 def portfolio_theta(asset_id,asset_mount,cash,begin_t,end_t):
     total_theta=[]
     keys=[]
@@ -165,7 +260,7 @@ def portfolio_theta(asset_id,asset_mount,cash,begin_t,end_t):
             temp=get_options_data(i,begin_t,end_t)
             if len(temp)!=0:
                 keys+=[i]
-                total_theta+=[temp['THETA']*asset_mount[ii]*contract_unit[temp['US_NAME'][0]]]
+                total_theta+=[temp['THETA']*asset_mount[ii]*contract_unit['50ETF']]
         elif is_futures(i):
             pass
             # temp=get_futures_data(i, begin_t, end_t)
@@ -182,12 +277,14 @@ def portfolio_theta(asset_id,asset_mount,cash,begin_t,end_t):
 
 # portfolio_var 调用这里portfolio_total_value取第一个返回值变为list调用定期调整与条件触发中的代码实现
 
+# @auto-fold here
 def portfolio_volatility(asset_id,asset_mount,cash,begin_t,end_t,time=10):
-    total,_=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t)
+    total,_=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t,time)
     res=total.diff(1)/total
     res=res.rolling(time).var()
     return res.dropna()
 
+# @auto-fold here
 def portfolio_earning_rate(asset_id,asset_mount,cash,begin_t,end_t,time=10):
     total,_=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t)
     res=total.diff(1)/total
@@ -195,14 +292,16 @@ def portfolio_earning_rate(asset_id,asset_mount,cash,begin_t,end_t,time=10):
     # res=res/time*365
     return res.dropna()
 
+# @auto-fold here
 def cal_option_amt(total_value,option,portion):
     temp=get_options_data(option,-2,-1)
     if len(temp)<=0:
         return 0
     else:
-        res=total_value*portion/contract_unit[temp['US_NAME'][0]]/temp['EXE_PRICE'][-1]
+        res=total_value*portion/contract_unit['50ETF']/temp['EXE_PRICE'][-1]
         return int(res+0.5)
 
+# @auto-fold here
 def cal_future_amt(total_value,futures,portion):
     temp=get_futures_data(futures,-2,-1)
     if len(temp)<=0:
@@ -213,15 +312,16 @@ def cal_future_amt(total_value,futures,portion):
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.externals import joblib
-def load_train_data(asset_id,asset_mount,cash,options,begin_t='',end_t='',mode=0):
-    data = pd.read_excel(options_path + options + r'.xlsx',index_col=0)
+def load_train_data(asset_id,asset_mount,cash,options,begin_t='',end_t='',mode=0,train=0):
+    # data = pd.read_excel(options_path + options + r'.xlsx',index_col=0)
+    data=get_options_data(options)
     s,_=portfolio_total_value(asset_id, asset_mount, cash, data.index[0], data.index[-1])
     data=pd.concat([data,s],axis=1)
     data.columns=list(data.columns[:-1])+['s']
     data=data[~np.isnan(data['s'])]
 
     data['ds']=data['s'].diff()
-    data['f']=data['OPEN']*contract_unit[data['US_NAME'][0]]
+    data['f']=data['OPEN']*contract_unit['50ETF']
     data['df']=data['f'].diff()
     data['real_delta']=data['df']/data['ds']
     if mode==1:
@@ -248,10 +348,12 @@ def load_train_data(asset_id,asset_mount,cash,options,begin_t='',end_t='',mode=0
     for i in range(len(data)): #隐含波动率没有解的（为空的），用20日波动率替代
         if data['US_IMPLIEDVOL'][i]==0:
             data['US_IMPLIEDVOL'][i]=data['HV_20'][i]
-
-    data.dropna(inplace=True)
-
-    data=data[abs(data['real_delta'])<=0.95] #选取delta在正负0.95以内的数据训练，删去极端值，原因是参考某某论文
+    if train:
+        data.dropna(inplace=True)
+    else:
+        data=data.where(data.notnull(),0)
+    if train:
+        data=data[abs(data['real_delta'])<=0.95] #选取delta在正负0.95以内的数据训练，删去极端值，原因是参考某某论文
     # if mode==1:
     #     pass
     # else:
@@ -268,7 +370,7 @@ def load_train_data(asset_id,asset_mount,cash,options,begin_t='',end_t='',mode=0
         return data_train[begin_t:end_t]
 
 def train_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
-    data_train=load_train_data(asset_id, asset_mount, cash, options)
+    data_train=load_train_data(asset_id, asset_mount, cash, options,train=1)
     rfr = RandomForestRegressor()
     rfr.fit(data_train.iloc[:,:-2].values,data_train.iloc[:,-1].values)
     joblib.dump(rfr,str(protfolio_id)+"_delta"+str(num)+".m")
@@ -287,7 +389,7 @@ def train_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
     return rfr
 
 def train_gamma_model(protfolio_id,asset_id,asset_mount,cash,options,num):
-    data_train=load_train_data(asset_id, asset_mount, cash, options,mode=1)
+    data_train=load_train_data(asset_id, asset_mount, cash, options,mode=1,train=1)
     rfr = RandomForestRegressor()
     rfr.fit(data_train.iloc[:,:-4].values,data_train.iloc[:,-1].values)
     joblib.dump(rfr,str(protfolio_id)+"_gamma"+str(num)+".m")
@@ -300,7 +402,7 @@ def fit_delta(protfolio_id,asset_id,asset_mount,cash,options,begin_t,end_t):
         model=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options)
     data=load_train_data(asset_id,asset_mount,cash,options,begin_t,end_t)
     res=model.predict(data.iloc[:,:-2].values)
-    res=list(map(lambda x:0 if x<=0 else 1/x,res))
+    res=list(map(lambda x:0 if x>=0 else -1/x,res))
     return res
 
 def fit_gamma(protfolio_id,asset_id,asset_mount,cash,options1,options2,begin_t,end_t):
@@ -372,29 +474,33 @@ def generate_recommend_option_delta(protfolio_id,asset_id,asset_mount,cash):
 def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
     pass
 
-def portfolio_beta():
-    pass
+# def portfolio_beta():
+# cpy实现
 
+# a=fit_delta('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'10001677SH','2019-4','2019-6')
+# a[-1]
+# total,_=portfolio_total_value(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4','2019-6')
+# total[-1]
+# cal_option_amt(total[-1],'10001686SH',0.5*a[-1])
+#
+# m=train_beta_model('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'IF1909')
+# m.coef_
+#
+# print(portfolio_total_value(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-1','2019-3'))
 
-
-
-m=train_beta_model('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'IF1909')
-m.coef_
-
-type(portfolio_volatility(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4','2019-5',7))
-
-a=fit_delta('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'10001677SH','2019-4','2019-5')
-a
-portfolio_total_value(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4','2019-5')
-
-portfolio_total_value(['IF1909'],[10],100000,'2019-4','2019-5')
-cal_option_amt(,'10001686SH',)
-
-d=portfolio_earning_rate(['000001.SZ','10001686SH','IF1909','000010.SZ'], [1000,10,5,1000], 100000, '2019-3', '2019-7',30)
-d
-pd.Timestamp('2019-3')-pd.to_timedelta(1)
-np.log(np.e)
-data=get_futures_data('IF1909','2019-3','2019-4')['OPEN']
-data=get_options_data('10001686SH','2019-3','2019-4')
-data
-list(map(lambda x:x.days/365,data['LASTTRADE_DATE']-data.index))
+# print(portfolio_earning_rate(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4-2','2019-4-2'))
+# print(portfolio_earning_rate(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4','2019-5'))
+#1
+#
+#
+# portfolio_total_value(['IF1909'],[10],100000,'2019-4','2019-5')
+#
+# cal_option_amt()
+# d=portfolio_earning_rate(['000001.SZ','10001686SH','IF1909','000010.SZ'], [1000,10,5,1000], 100000, '2019-3', '2019-7',30)
+# d
+# pd.Timestamp('2019-3')-pd.to_timedelta(1)
+# np.log(np.e)
+# data=get_futures_data('IF1909','2019-3','2019-4')['OPEN']
+# data=get_options_data('10001686SH','2019-3','2019-4')
+# data
+# list(map(lambda x:x.days/365,data['LASTTRADE_DATE']-data.index))
