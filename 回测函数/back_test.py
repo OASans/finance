@@ -119,7 +119,8 @@ def cal_cash(new_p,position,cash,asset_data,asset_id,asset_data_before):
 def policy_stay_calm(asset_dat,asset_amount,cash,t1,t2,new):
     return asset_amount
 
-from options import fit_delta,cal_option_amt,portfolio_total_value,retrain_delta_model,retrain_gamma_model,fit_gamma,retrain_beta_model,fit_beta
+from options import fit_delta,cal_option_amt,portfolio_total_value,retrain_delta_model,retrain_gamma_model,fit_gamma,retrain_beta_model,fit_beta,cal_future_amt
+
 def policy_delta(asset_dat,asset_amount,cash,t1,t2,new):
     if new:
         retrain_delta_model('test', asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1])
@@ -128,7 +129,7 @@ def policy_delta(asset_dat,asset_amount,cash,t1,t2,new):
         policy_delta.dat=pd.concat([policy_delta.temp,policy_delta.temp2],axis=1,keys=['delta','value'])
         policy_delta.dat=policy_delta.dat.fillna(0)
 
-    asset_amount[-1]=cal_option_amt(policy_delta.dat.iloc[len(asset_dat)-2,1], asset_dat.columns[-1], policy_delta.dat.iloc[len(asset_dat)-2,0])
+    asset_amount[-1]=cal_option_amt(policy_delta.dat.iloc[len(asset_dat)-2,1], asset_dat.columns[-1], policy_delta.dat.iloc[len(asset_dat)-2,0],str(policy_delta.dat.index[len(asset_dat)-2])[:10])
     if asset_amount[-1]>=5000:
         asset_amount[-1]=5000
     return  asset_amount
@@ -140,8 +141,8 @@ def policy_gamma(asset_dat,asset_amount,cash,t1,t2,new):
         _,policy_gamma.temp2=portfolio_total_value(asset_dat.columns[:-2],asset_amount[:-2],cash, t1,t2)
         policy_gamma.dat=pd.concat([policy_gamma.temp,policy_gamma.temp2],axis=1)
         policy_gamma.dat=policy_gamma.dat.fillna(0)
-    asset_amount[-2]=cal_option_amt(policy_gamma.dat.iloc[len(asset_dat)-2,2], asset_dat.columns[-2], policy_gamma.dat.iloc[len(asset_dat)-2,0])
-    asset_amount[-1]=cal_option_amt(policy_gamma.dat.iloc[len(asset_dat)-2,2], asset_dat.columns[-1], policy_gamma.dat.iloc[len(asset_dat)-2,1])
+    asset_amount[-2]=cal_option_amt(policy_gamma.dat.iloc[len(asset_dat)-2,2], asset_dat.columns[-2], policy_gamma.dat.iloc[len(asset_dat)-2,0],str(policy_gamma.dat.index[len(asset_dat)-2])[:10])
+    asset_amount[-1]=cal_option_amt(policy_gamma.dat.iloc[len(asset_dat)-2,2], asset_dat.columns[-1], policy_gamma.dat.iloc[len(asset_dat)-2,1],str(policy_gamma.dat.index[len(asset_dat)-2])[:10])
     if asset_amount[-1]>=5000:
         asset_amount[-1]=5000
     if asset_amount[-2]>=5000:
@@ -149,31 +150,36 @@ def policy_gamma(asset_dat,asset_amount,cash,t1,t2,new):
     return  asset_amount
 
 def policy_beta(asset_dat,asset_amount,cash,t1,t2,new):
-    pass
+    if new:
+        retrain_beta_model('test', asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1])
+        policy_beta.temp=fit_beta('test',asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1])
+        _,policy_beta.dat=portfolio_total_value(asset_dat.columns[:-1],asset_amount[:-1],cash, t1,t2)
 
+    asset_amount[-1]=cal_future_amt(policy_beta.dat[len(asset_dat)-2], asset_dat.columns[-1], policy_beta.temp,str(policy_beta.dat.index[len(asset_dat)-2])[:10])
+    return  asset_amount
 
 # 以下只是一个例子
-def policy_example1(asset_dat, asset_amount,cash,t1,t2,new):
-    # is_rise=asset_dat.iloc[-2]<=asset_dat.iloc[-1]
-    # new_p=[]
-    # for ii,i in enumerate(asset_amount):
-    #     if is_rise[ii]:
-    #         new_p+=[i+1000]
-    #     else:
-    #         new_p+=[i-1000]
-    # return new_p
-    if new:
-        policy_example1.data=get_options_data(asset_dat.columns[-1], t1, t2)
-        # policy_example1.data=pd.read_excel(options_path + asset_dat.columns[-1] + r'.xlsx',index_col=0)
-        # policy_example1.data=policy_example1.data[t1:t2]
-        policy_example1.data=list(map(lambda x:0 if x>=0 else -1/x,policy_example1.data['DELTA']))
-        _,policy_example1.temp2=portfolio_total_value(asset_dat.columns[:-1],asset_amount[:-1],cash, t1,t2)
-    temp=policy_example1.data[len(asset_dat)-2]
-    asset_amount[-1]=cal_option_amt(policy_example1.temp2[len(asset_dat)-2], asset_dat.columns[-1], temp)
-    # print(temp)
-    if asset_amount[-1]>=5000:
-        asset_amount[-1]=5000
-    return  asset_amount
+# def policy_example1(asset_dat, asset_amount,cash,t1,t2,new):
+#     # is_rise=asset_dat.iloc[-2]<=asset_dat.iloc[-1]
+#     # new_p=[]
+#     # for ii,i in enumerate(asset_amount):
+#     #     if is_rise[ii]:
+#     #         new_p+=[i+1000]
+#     #     else:
+#     #         new_p+=[i-1000]
+#     # return new_p
+#     if new:
+#         policy_example1.data=get_options_data(asset_dat.columns[-1], t1, t2)
+#         # policy_example1.data=pd.read_excel(options_path + asset_dat.columns[-1] + r'.xlsx',index_col=0)
+#         # policy_example1.data=policy_example1.data[t1:t2]
+#         policy_example1.data=list(map(lambda x:0 if x>=0 else -1/x,policy_example1.data['DELTA']))
+#         _,policy_example1.temp2=portfolio_total_value(asset_dat.columns[:-1],asset_amount[:-1],cash, t1,t2)
+#     temp=policy_example1.data[len(asset_dat)-2]
+#     asset_amount[-1]=cal_option_amt(policy_example1.temp2[len(asset_dat)-2], asset_dat.columns[-1], temp)
+#     # print(temp)
+#     if asset_amount[-1]>=5000:
+#         asset_amount[-1]=5000
+#     return  asset_amount
 
 
 
@@ -260,18 +266,18 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
 
 
 # use examples
-d=back_test(['000001.SZ','10001677.SH','10001686.SH'],[10000,0,0],100000,policy_stay_calm,'2019-1','2019-9',1)
+d=back_test(['000001.SZ','10001677.SH','10001686.SH'],[100000,0,0],100000,policy_stay_calm,'2019-1','2019-9',1)
 from matplotlib import pyplot as plt
 plt.figure()
 plt.plot_date(d.index,d.values,label='No Hedging',fmt='-')
-print('-----------------')
 
-dd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[10000,0,0],100000,policy_delta,'2019-1','2019-9',1)#10001677SH
+dd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_delta,'2019-1','2019-9',1)#10001677SH
 
 # dd=back_test(['000001.SZ','IF1909','000010.SZ'],[100000,0,100000],1000000,policy_example3,'2019-4','2019-7',1)
 plt.plot_date(dd.index,dd.values,label='ML-Delta Dynamic Hedging',fmt='-')
+print('-----------------')
 
-ddd=back_test(['000001.SZ','10001677.SH','10001686.SH'],[10000,0,0],100000,policy_gamma,'2019-1','2019-9',1)
-plt.plot_date(ddd.index,ddd.values,label='Delta-Gamma Hedging',fmt='-')
+ddd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_gamma,'2019-1','2019-9',1)
+plt.plot_date(ddd.index,ddd.values,label='Beta Hedging',fmt='-')
 plt.legend()
 plt.show()

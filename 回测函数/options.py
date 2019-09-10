@@ -295,8 +295,11 @@ def portfolio_earning_rate(asset_id,asset_mount,cash,begin_t,end_t,time=10):
     return res.dropna()
 
 # @auto-fold here
-def cal_option_amt(total_value,option,portion):
-    temp=get_options_data(option,-2,-1)
+def cal_option_amt(total_value,option,portion,t1):
+    try:
+        temp=get_options_data(option,t1,t1)
+    except:
+        return 0
     if len(temp)<=0:
         return 0
     else:
@@ -304,8 +307,11 @@ def cal_option_amt(total_value,option,portion):
         return int(res+0.5)
 
 # @auto-fold here
-def cal_future_amt(total_value,futures,portion):
-    temp=get_futures_data(futures,-2,-1)
+def cal_future_amt(total_value,futures,portion,t1):
+    try:
+        temp=get_futures_data(futures,t1,t1,1)
+    except:
+        return 0
     if len(temp)<=0:
         return 0
     else:
@@ -499,8 +505,11 @@ def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
 # def portfolio_beta():
 # cpy实现
 
-# a=fit_beta('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'IF1909')
+# a=fit_delta('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'10001686.SH','2019-4-2','2019-4-2')
 # print(a)
+# alpha=0.9
+# b=cal_option_amt(portfolio_total_value(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4-2','2019-4-2')[-1], '10001686.SH', alpha*a[0])
+# print(b)
 # a[-1]
 # total,_=portfolio_total_value(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4','2019-6')
 # total[-1]
@@ -511,19 +520,21 @@ def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
 #
 # print(portfolio_total_value(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-1','2019-3'))
 
-print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4-2','2019-4-2'))
-print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4','2019-5'))
+# print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4-2','2019-4-2'))
+# print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4','2019-5'))
 #1
 #
 #
 # portfolio_total_value(['IF1909'],[10],100000,'2019-4','2019-5')
 #
-# cal_option_amt()
+# a=cal_option_amt(91800,'10001677.SH',0.0,'2019-01-03')
+# print(a)
 # d=portfolio_earning_rate(['000001.SZ','10001686SH','IF1909','000010.SZ'], [1000,10,5,1000], 100000, '2019-3', '2019-7',30)
 # d
 # pd.Timestamp('2019-3')-pd.to_timedelta(1)
 # np.log(np.e)
-# data=get_futures_data('IF1909','2019-3','2019-4')['OPEN']
+# data=get_futures_data('IF1909','2019-3','2019-4')
+# print(data)
 # data=get_options_data('10001686SH','2019-3','2019-4')
 # data
 # list(map(lambda x:x.days/365,data['LASTTRADE_DATE']-data.index))
