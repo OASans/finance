@@ -34,7 +34,7 @@ time：时间值，即计算1日还是7日还是15日……
 后置条件：
 返回组合的对应时期的一段值：series<float>
 
-### retrain_delta_model(protfolio_id:str,asset_id:list<str>,asset_amount:list<int>,cash:float,options:str)
+### retrain_delta_model(protfolio_id:str,asset_id:list<str>,asset_amount:list<int>,cash:float,options:str,test=0)
 
 描述：
 
@@ -42,11 +42,13 @@ time：时间值，即计算1日还是7日还是15日……
 
 protfolio_id为组合的id,需根据该id寻找对于的模型文件
 
+test为是否保存为已有策略，0为非、仅供这次模拟使用，1位是，供之后没人调整时使用
+
 其他同上
 
 
 
-### retrain_gamma_model(protfolio_id:str,asset_id:list<str>,asset_amount:list<int>,cash:float,options1:str,options2:str)
+### retrain_gamma_model(protfolio_id:str,asset_id:list<str>,asset_amount:list<int>,cash:float,options1:str,options2:str,test=0)
 
 描述：
 
@@ -54,11 +56,13 @@ protfolio_id为组合的id,需根据该id寻找对于的模型文件
 
 protfolio_id为组合的id,需根据该id寻找对于的模型文件
 
+test为是否保存为已有策略，0为非、仅供这次模拟使用，1位是，供之后没人调整时使用
+
 其他同上
 
 
 
-### fit_delta(protfolio_id：str,asset_id:list<str>,asset_amount:list<int>,cash:float,options:str,begin_t:str,end_t:str) ->  series<float>
+### fit_delta(protfolio_id：str,asset_id:list<str>,asset_amount:list<int>,cash:float,options:str,begin_t:str,end_t:str,test=0) ->  series<float>
 
 描述：
 获取指定期权套保下的推荐对冲比例值
@@ -70,10 +74,13 @@ asset_id为id的list ,如['000001.SZ','000002.SZ']
 asset_amount为初始资产的配置的list，对于股票单位为股数，如[1000,1000],期权期货为份数
 cash为初始资金数量的浮点数
 options为所选期权id
+
+test为是否保存为已有策略，0为非、仅供这次模拟使用，1位是，供之后没人调整时使用
+
 后置条件：
 返回时期内对冲比例值预测/推荐值： series<float>
 
-### fit_gamma(protfolio_id：str,asset_id:list<str>,asset_amount:list<int>,cash:float,options1:str,options2:str,begin_t:str,end_t:str) -> series(float,float)
+### fit_gamma(protfolio_id：str,asset_id:list<str>,asset_amount:list<int>,cash:float,options1:str,options2:str,begin_t:str,end_t:str,test=0) -> series(float,float)
 描述：
 获取指定两期权套保持有比例的预测/推荐值
 前置条件：
@@ -84,16 +91,22 @@ asset_id为id的list ,如['000001.SZ','000002.SZ']
 asset_amount为初始资产的配置的list，对于股票单位为股数，如[1000,1000]
 cash为初始资金数量的浮点数
 options1、options2为所选期权id
+
+test为是否保存为已有策略，0为非、仅供这次模拟使用，1位是，供之后没人调整时使用
+
 后置条件：
 返回时期内期权套保持有比例的预测/推荐值： series(float,float)
 
-### cal_option_amt(total_value:float,option:str,portion:float)->int
+### cal_option_amt(total_value:float,option:str,portion:float,t1)->int
 描述：
 根据组合总价值、期权id、套保比例计算对应所需期权份数
 前置条件：
 total_value为当下整个组合的总价值
 option为期权的id
 portion为套保比例，即为对冲比例*完全对冲所需期权比例值
+
+t1为当前日期
+
 后置条件：
 返回期权的份数：int
 
@@ -112,6 +125,8 @@ begin_t 当前时间
 
 后置条件：
 返回推荐选择期权id：list<str>
+
+返回的数量不做限制了，前端那边手动截取一下为固定数量吧
 
 ### generate_recommend_option_gamma(asset_id:list<str>,asset_amount:list<int>,cash:float,begin_t:str)->list<str>
 
@@ -139,7 +154,7 @@ cash为初始资金数量的浮点数
 后置条件：
 返回组合的对应beta值：float
 
-### retrain_beta_model(protfolio_id:str,asset_id:list<str>,asset_amount:list<int>,cash:float,futures:str)
+### retrain_beta_model(protfolio_id:str,asset_id:list<str>,asset_amount:list<int>,cash:float,futures:str，test=0 )
 
 描述：
 
@@ -151,7 +166,7 @@ protfolio_id为组合的id,需根据该id寻找对于的模型文件
 
 
 
-### fit_beta(protfolio_id：str,asset_id:list<str>,asset_amount:list<int>,cash:float,futures:str,begin_t:str,end_t:str) ->  series<float>
+### fit_beta(protfolio_id：str,asset_id:list<str>,asset_amount:list<int>,cash:float,futures:str,begin_t:str,end_t:str,test=0) ->  series<float>
 描述：
 获取指定期货套保下的推荐对冲比例值
 前置条件：
@@ -162,13 +177,16 @@ futures为所选期货id
 后置条件：
 返回下一日对冲比例值预测/推荐值：float
 
-### cal_future_amt(total_value:float,futures:str,portion:float)->int
+### cal_future_amt(total_value:float,futures:str,portion:float,t1)->int
 描述：
 根据组合总价值、期货id、套保比例计算对应所需期货份数
 前置条件：
 total_value为当下整个组合的总价值
 option为期货的id
 portion为套保比例，即为对冲比例*完全对冲所需期货比例值
+
+t1为当前日期
+
 后置条件：
 返回期货的份数：int
 

@@ -397,8 +397,8 @@ def train_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
 
     return rfr
 
-def retrain_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
-    return train_delta_model(protfolio_id, asset_id, asset_mount, cash, options,num=num)
+def retrain_delta_model(protfolio_id,asset_id,asset_mount,cash,options,test=0):
+    return train_delta_model(protfolio_id, asset_id, asset_mount, cash, options,num=test*10)
 
 def train_gamma_model(protfolio_id,asset_id,asset_mount,cash,options,num):
     data_train=load_train_data(asset_id, asset_mount, cash, options,mode=1,train=1)
@@ -407,41 +407,41 @@ def train_gamma_model(protfolio_id,asset_id,asset_mount,cash,options,num):
     joblib.dump(rfr,str(protfolio_id)+"_gamma"+str(num)+".m")
     return rfr
 
-def retrain_gamma_model(protfolio_id,asset_id,asset_mount,cash,options1,options2):
-    model1=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options1,1)
-    model2=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options2,2)
-    model3=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options1,1)
-    model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,2)
+def retrain_gamma_model(protfolio_id,asset_id,asset_mount,cash,options1,options2,test=0):
+    model1=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options1,10*test+1)
+    model2=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
+    model3=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options1,10*test+1)
+    model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
 
 
-def fit_delta(protfolio_id,asset_id,asset_mount,cash,options,begin_t,end_t):
+def fit_delta(protfolio_id,asset_id,asset_mount,cash,options,begin_t,end_t,test=0):
     try:
-        model=joblib.load(str(protfolio_id)+"_delta0.m")
+        model=joblib.load(str(protfolio_id)+"_delta"+str(10*test)+".m")
     except:
-        model=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options)
+        model=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options,10*test)
     data=load_train_data(asset_id,asset_mount,cash,options,begin_t,end_t,train=0)
     res=model.predict(data.iloc[:,:-2].values)
     res=list(map(lambda x:0 if x>=0 else -1/x,res))
     data['pred']=res
     return data['pred']
 
-def fit_gamma(protfolio_id,asset_id,asset_mount,cash,options1,options2,begin_t,end_t):
+def fit_gamma(protfolio_id,asset_id,asset_mount,cash,options1,options2,begin_t,end_t,test=0):
     try:
-        model1=joblib.load(str(protfolio_id)+"_gamma1.m")
+        model1=joblib.load(str(protfolio_id)+"_gamma"+str(10*test+1)+".m")
     except:
-        model1=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options1,1)
+        model1=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options1,10*test+1)
     try:
-        model2=joblib.load(str(protfolio_id)+"_gamma2.m")
+        model2=joblib.load(str(protfolio_id)+"_gamma"+str(10*test+2)+".m")
     except:
-        model2=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options2,2)
+        model2=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
     try:
-        model3=joblib.load(str(protfolio_id)+"_delta1.m")
+        model3=joblib.load(str(protfolio_id)+"_delta"+str(10*test+1)+".m")
     except:
-        model3=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options1,1)
+        model3=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options1,10*test+1)
     try:
-        model4=joblib.load(str(protfolio_id)+"_delta2.m")
+        model4=joblib.load(str(protfolio_id)+"_delta"+str(10*test+2)+".m")
     except:
-        model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,2)
+        model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
 
     data1=load_train_data(asset_id,asset_mount,cash,options1,begin_t,end_t,mode=1,train=0)
     data2=load_train_data(asset_id,asset_mount,cash,options2,begin_t,end_t,mode=1,train=0)
@@ -487,12 +487,22 @@ def train_beta_model(protfolio_id,asset_id,asset_mount,cash,futures,num=0):
     joblib.dump(model,str(protfolio_id)+"_beta"+str(num)+".m")
     return model
 
-def fit_beta(protfolio_id,asset_id,asset_mount,cash,futures):
+def fit_beta(protfolio_id,asset_id,asset_mount,cash,futures,test=0):
     try:
-        model=joblib.load(str(protfolio_id)+"_beta0.m")
+        model=joblib.load(str(protfolio_id)+"_beta"+str(test*10)+".m")
     except:
-        model=train_beta_model(protfolio_id, asset_id, asset_mount, cash, futures)
+        model=train_beta_model(protfolio_id, asset_id, asset_mount, cash, futures,test*10)
     res=model.coef_
+    return res[0]
+
+def cal_option_change_rate(option,t):
+    dat=get_options_data(option,t,t)
+    res=(dat['CLOSE']-dat['PRECLO'])/dat['PRECLO']
+    return res[0]
+
+def cal_future_change_rate(future,t):
+    dat=get_futures_data(future,t,t)
+    res=(dat['CLOSE']-dat['PRECLO'])/dat['PRECLO']
     return res[0]
 
 
@@ -508,12 +518,42 @@ def generate_recommend_option_delta(protfolio_id,asset_id,asset_mount,cash):
     sql_selected=sql_dat[np.array(sql_dat['days_left']>=40) & np.array(sql_dat['days_left']<=120)]
     sql_selected=sql_dat[np.array(sql_dat['EXE_PRICE']>=2.3) & np.array(sql_dat['EXE_PRICE']<=2.6)]
     sql_selected=sql_selected[sql_selected['EXE_MODE']=='认购']
-    print(len(sql_selected))
+    sql_selected['chg']=sql_dat['TRADECODE'].map(lambda x:cal_option_change_rate(x,str(today)[:10]))
+    sql_selected=sql_selected.sort_values(by='chg',ascending=False)
+    # _,val_t=portfolio_total_value(asset_id, asset_mount, cash, str(today)[:10], str(today)[:10])
+    # print(list(sql_selected['TRADECODE']))
+    return list(sql_selected['TRADECODE'])
+
+def generate_recommend_option_gamma(protfolio_id,asset_id,asset_mount,cash):
+    sql="select * from OPTIONINFO "
+    sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','TRADECODE','EXE_PRICE','EXE_MODE','FIRST_DATE','LAST_DATE'])
+    sql="select DATE from "+sql_dat['TRADECODE'][0][-2:]+sql_dat['TRADECODE'][0][:8]
+    today=list(c.execute(sql))[-1][0]
+    today=pd.Timestamp(today)
+    sql_dat['LAST_DATE']=sql_dat['LAST_DATE'].map(pd.Timestamp)
+    sql_dat['days_left']=sql_dat['LAST_DATE']-today
+    sql_dat['days_left']=sql_dat['days_left'].map(lambda x: int(x.days))
+    sql_selected=sql_dat[np.array(sql_dat['days_left']>=40) & np.array(sql_dat['days_left']<=120)]
+    sql_selected=sql_dat[np.array(sql_dat['EXE_PRICE']>=2.3) & np.array(sql_dat['EXE_PRICE']<=2.6)]
+    sql_selected['chg']=sql_dat['TRADECODE'].map(lambda x:cal_option_change_rate(x,str(today)[:10]))
+    sql_selected=sql_selected.sort_values(by='chg',ascending=False)
+    return list(sql_selected['TRADECODE'])
 
 def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
-    pass
+    sql="select * from FUTUREINFO "
+    sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','TRADECODE','WIN_CODE','NAME','FIRST_DATE','LAST_DATE'])
+    sql="select DATE from "+sql_dat['TRADECODE'][0]
+    today=list(c.execute(sql))[-1][0]
+    today=pd.Timestamp(today)
+    sql_dat['LAST_DATE']=sql_dat['LAST_DATE'].map(pd.Timestamp)
+    sql_dat['days_left']=sql_dat['LAST_DATE']-today
+    sql_dat['days_left']=sql_dat['days_left'].map(lambda x: int(x.days))
+    sql_selected=sql_dat[np.array(sql_dat['days_left']>=30) & np.array(sql_dat['days_left']<=150)]
+    sql_selected['chg']=sql_dat['TRADECODE'].map(lambda x:cal_future_change_rate(x,str(today)[:10]))
+    sql_selected=sql_selected.sort_values(by='chg',ascending=False)
+    return list(sql_selected['TRADECODE'])
 
 # def portfolio_beta():
 # cpy实现
 
-# generate_recommend_option_delta('123',['000001.SZ','10001689.SH','10001697.SH'],[100000,0,0],100000)
+# print(generate_recommend_future('123',['000001.SZ','10001689.SH','10001697.SH'],[100000,0,0],100000))
