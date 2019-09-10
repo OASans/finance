@@ -119,21 +119,36 @@ def cal_cash(new_p,position,cash,asset_data,asset_id,asset_data_before):
 def policy_stay_calm(asset_dat,asset_amount,cash,t1,t2,new):
     return asset_amount
 
-from options import fit_delta,cal_option_amt,portfolio_total_value,train_delta_model
+from options import fit_delta,cal_option_amt,portfolio_total_value,retrain_delta_model,retrain_gamma_model,fit_gamma,retrain_beta_model,fit_beta
 def policy_delta(asset_dat,asset_amount,cash,t1,t2,new):
     if new:
-        train_delta_model('test', asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1])
+        retrain_delta_model('test', asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1])
         policy_delta.temp=fit_delta('test',asset_dat.columns[:-1],asset_amount[:-1],cash,asset_dat.columns[-1],t1,t2)
         _,policy_delta.temp2=portfolio_total_value(asset_dat.columns[:-1],asset_amount[:-1],cash, t1,t2)
-    asset_amount[-1]=cal_option_amt(policy_delta.temp2[len(asset_dat)-2], asset_dat.columns[-1], policy_delta.temp[len(asset_dat)-2])
+        policy_delta.dat=pd.concat([policy_delta.temp,policy_delta.temp2],axis=1,keys=['delta','value'])
+        policy_delta.dat=policy_delta.dat.fillna(0)
+
+    asset_amount[-1]=cal_option_amt(policy_delta.dat.iloc[len(asset_dat)-2,1], asset_dat.columns[-1], policy_delta.dat.iloc[len(asset_dat)-2,0])
     if asset_amount[-1]>=5000:
         asset_amount[-1]=5000
     return  asset_amount
 
-def policy_gamma():
-    pass
+def policy_gamma(asset_dat,asset_amount,cash,t1,t2,new):
+    if new:
+        retrain_gamma_model('test', asset_dat.columns[:-2],asset_amount[:-2],cash,asset_dat.columns[-2],asset_dat.columns[-1])
+        policy_gamma.temp=fit_gamma('test',asset_dat.columns[:-2],asset_amount[:-2],cash,asset_dat.columns[-2],asset_dat.columns[-1],t1,t2)
+        _,policy_gamma.temp2=portfolio_total_value(asset_dat.columns[:-2],asset_amount[:-2],cash, t1,t2)
+        policy_gamma.dat=pd.concat([policy_gamma.temp,policy_gamma.temp2],axis=1)
+        policy_gamma.dat=policy_gamma.dat.fillna(0)
+    asset_amount[-2]=cal_option_amt(policy_gamma.dat.iloc[len(asset_dat)-2,2], asset_dat.columns[-2], policy_gamma.dat.iloc[len(asset_dat)-2,0])
+    asset_amount[-1]=cal_option_amt(policy_gamma.dat.iloc[len(asset_dat)-2,2], asset_dat.columns[-1], policy_gamma.dat.iloc[len(asset_dat)-2,1])
+    if asset_amount[-1]>=5000:
+        asset_amount[-1]=5000
+    if asset_amount[-2]>=5000:
+        asset_amount[-2]=5000
+    return  asset_amount
 
-def policy_beta():
+def policy_beta(asset_dat,asset_amount,cash,t1,t2,new):
     pass
 
 
@@ -209,6 +224,8 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
     else:
         asset_data=pd.concat(asset_data,axis=1)
         asset_data.columns=asset_keys
+        asset_data=asset_data.fillna(method='ffill')
+        asset_data=asset_data.fillna(method='bfill')
 
 
     cashes=[begin_cash]
@@ -243,18 +260,18 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
 
 
 # use examples
-d=back_test(['000001.SZ','10001677.SH'],[10000,0],100000,policy_stay_calm,'2019-2','2019-8',1)
+d=back_test(['000001.SZ','10001677.SH','10001686.SH'],[10000,0,0],100000,policy_stay_calm,'2019-1','2019-9',1)
 from matplotlib import pyplot as plt
 plt.figure()
 plt.plot_date(d.index,d.values,label='No Hedging',fmt='-')
 print('-----------------')
 
-dd=back_test(['000001.SZ','10001677.SH'],[10000,0],100000,policy_delta,'2019-2','2019-8',1)#10001677SH
+dd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[10000,0,0],100000,policy_delta,'2019-1','2019-9',1)#10001677SH
 
 # dd=back_test(['000001.SZ','IF1909','000010.SZ'],[100000,0,100000],1000000,policy_example3,'2019-4','2019-7',1)
 plt.plot_date(dd.index,dd.values,label='ML-Delta Dynamic Hedging',fmt='-')
 
-ddd=back_test(['000001.SZ','10001677.SH'],[10000,0],100000,policy_example1,'2019-2','2019-8',1)
-plt.plot_date(ddd.index,ddd.values,label='Static Hedging',fmt='-')
+ddd=back_test(['000001.SZ','10001677.SH','10001686.SH'],[10000,0,0],100000,policy_gamma,'2019-1','2019-9',1)
+plt.plot_date(ddd.index,ddd.values,label='Delta-Gamma Hedging',fmt='-')
 plt.legend()
 plt.show()

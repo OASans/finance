@@ -9,6 +9,7 @@ import sqlite3
 conn = sqlite3.connect('../获取资产的基本数据/fin_set.db')#连接到db
 c = conn.cursor()#创建游标
 
+pd.set_option('mode.use_inf_as_na', True)
 
 contract_unit=dict()
 contract_unit['50ETF']=10000
@@ -280,8 +281,9 @@ def portfolio_theta(asset_id,asset_mount,cash,begin_t,end_t):
 # @auto-fold here
 def portfolio_volatility(asset_id,asset_mount,cash,begin_t,end_t,time=10):
     total,_=portfolio_total_value(asset_id, asset_mount, cash, begin_t, end_t,time)
+    total=np.log(total)
     res=total.diff(1)/total
-    res=res.rolling(time).var()
+    res=res.rolling(time).std()
     return res.dropna()
 
 # @auto-fold here
@@ -312,9 +314,13 @@ def cal_future_amt(total_value,futures,portion):
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.externals import joblib
+# @auto-fold here
 def load_train_data(asset_id,asset_mount,cash,options,begin_t='',end_t='',mode=0,train=0):
     # data = pd.read_excel(options_path + options + r'.xlsx',index_col=0)
-    data=get_options_data(options)
+    if train==1:
+        data=get_options_data(options,begin_t,end_t,2)
+    else:
+        data=get_options_data(options,begin_t,end_t)
     s,_=portfolio_total_value(asset_id, asset_mount, cash, data.index[0], data.index[-1])
     data=pd.concat([data,s],axis=1)
     data.columns=list(data.columns[:-1])+['s']
@@ -364,10 +370,7 @@ def load_train_data(asset_id,asset_mount,cash,options,begin_t='',end_t='',mode=0
     else:
         data_train=data[['EXE_PRICE','s','T-t','US_IMPLIEDVOL','HV_5','HV_10','HV_15','HV_20','VOLATILITYRATIO','DELTA', 'GAMMA', 'VEGA', 'THETA', 'RHO','VWAP', 'VOLUME', 'AMT', 'OI_CHG', 'SETTLE','HIGH', 'LOW','delta_pre','real_delta']]
     data_train.dropna(inplace=True)
-    if begin_t=='' or end_t=='':
-        return data_train
-    else:
-        return data_train[begin_t:end_t]
+    return data_train
 
 def train_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
     data_train=load_train_data(asset_id, asset_mount, cash, options,train=1)
@@ -388,6 +391,9 @@ def train_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
 
     return rfr
 
+def retrain_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
+    return train_delta_model(protfolio_id, asset_id, asset_mount, cash, options,num=num)
+
 def train_gamma_model(protfolio_id,asset_id,asset_mount,cash,options,num):
     data_train=load_train_data(asset_id, asset_mount, cash, options,mode=1,train=1)
     rfr = RandomForestRegressor()
@@ -395,15 +401,23 @@ def train_gamma_model(protfolio_id,asset_id,asset_mount,cash,options,num):
     joblib.dump(rfr,str(protfolio_id)+"_gamma"+str(num)+".m")
     return rfr
 
+def retrain_gamma_model(protfolio_id,asset_id,asset_mount,cash,options1,options2):
+    model1=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options1,1)
+    model2=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options2,2)
+    model3=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options1,1)
+    model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,2)
+
+
 def fit_delta(protfolio_id,asset_id,asset_mount,cash,options,begin_t,end_t):
     try:
         model=joblib.load(str(protfolio_id)+"_delta0.m")
     except:
         model=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options)
-    data=load_train_data(asset_id,asset_mount,cash,options,begin_t,end_t)
+    data=load_train_data(asset_id,asset_mount,cash,options,begin_t,end_t,train=0)
     res=model.predict(data.iloc[:,:-2].values)
     res=list(map(lambda x:0 if x>=0 else -1/x,res))
-    return res
+    data['pred']=res
+    return data['pred']
 
 def fit_gamma(protfolio_id,asset_id,asset_mount,cash,options1,options2,begin_t,end_t):
     try:
@@ -423,22 +437,27 @@ def fit_gamma(protfolio_id,asset_id,asset_mount,cash,options1,options2,begin_t,e
     except:
         model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,2)
 
-    data1=load_train_data(asset_id,asset_mount,cash,options1,begin_t,end_t,mode=1)
-    data2=load_train_data(asset_id,asset_mount,cash,options2,begin_t,end_t,mode=1)
-    gamma1=model1.predict(data1.iloc[:,:-4].values)
-    gamma2=model2.predict(data2.iloc[:,:-4].values)
-    delta1=model3.predict(data1.iloc[:,:-4].values)
-    delta2=model4.predict(data2.iloc[:,:-4].values)
-    gamma1=pd.Series(map(lambda x:0 if x <=0 else x,gamma1))
-    gamma2=pd.Series(map(lambda x:0 if x <=0 else x,gamma2))
-    delta1=pd.Series(map(lambda x:0 if x <=0 else x,delta1))
-    delta2=pd.Series(map(lambda x:0 if x <=0 else x,delta2))
+    data1=load_train_data(asset_id,asset_mount,cash,options1,begin_t,end_t,mode=1,train=0)
+    data2=load_train_data(asset_id,asset_mount,cash,options2,begin_t,end_t,mode=1,train=0)
+    data=pd.concat([data1,data2],axis=1)
+    data=data.fillna(method='ffill')
+    data=data.fillna(method='bfill')
+    gamma1=model1.predict(data.iloc[:,:21].values)
+    gamma2=model2.predict(data.iloc[:,25:46].values)
+    delta1=model3.predict(data.iloc[:,:21].values)
+    delta2=model4.predict(data.iloc[:,25:46].values)
+    gamma1=pd.Series(map(lambda x:0 if x ==0 else x,gamma1))
+    gamma2=pd.Series(map(lambda x:0 if x ==0 else x,gamma2))
+    delta1=pd.Series(map(lambda x:0 if x ==0 else x,delta1))
+    delta2=pd.Series(map(lambda x:0 if x ==0 else x,delta2))
     temp=gamma1*delta2-gamma2*delta1
     x1=gamma2/temp
     x2=gamma1/(-temp)
-
-    res=pd.DataFrame([x1,x2])
-    return res
+    x1=x1.map(lambda x:0 if x <=0 else x)
+    x2=x2.map(lambda x:0 if x <=0 else x)
+    data['x1']=list(x1)
+    data['x2']=list(x2)
+    return data[['x1','x2']]
 
 from sklearn import linear_model
 def load_train_future_data(asset_id,asset_mount,cash,future,begin_t='',end_t=''):
@@ -451,6 +470,9 @@ def load_train_future_data(asset_id,asset_mount,cash,future,begin_t='',end_t='')
     data=data[~np.isnan(data['s'])]
     data=data.dropna()
     return data[['r_f','r_s']]
+
+def retrain_beta_model(protfolio_id,asset_id,asset_mount,cash,futures,num=0):
+    return train_beta_model(protfolio_id, asset_id, asset_mount, cash, futures,num=num)
 
 def train_beta_model(protfolio_id,asset_id,asset_mount,cash,futures,num=0):
     data_train=load_train_future_data(asset_id, asset_mount, cash, futures)
@@ -465,7 +487,7 @@ def fit_beta(protfolio_id,asset_id,asset_mount,cash,futures):
     except:
         model=train_beta_model(protfolio_id, asset_id, asset_mount, cash, futures)
     res=model.coef_
-    return res
+    return res[0]
 
 
 def generate_recommend_option_delta(protfolio_id,asset_id,asset_mount,cash):
@@ -477,7 +499,8 @@ def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
 # def portfolio_beta():
 # cpy实现
 
-# a=fit_delta('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'10001677SH','2019-4','2019-6')
+# a=fit_beta('123',['000001.SZ','000010.SZ'],[1000,1000],100000,'IF1909')
+# print(a)
 # a[-1]
 # total,_=portfolio_total_value(['000001.SZ','000010.SZ'],[1000,1000],100000,'2019-4','2019-6')
 # total[-1]
@@ -488,8 +511,8 @@ def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
 #
 # print(portfolio_total_value(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-1','2019-3'))
 
-# print(portfolio_earning_rate(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4-2','2019-4-2'))
-# print(portfolio_earning_rate(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4','2019-5'))
+print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4-2','2019-4-2'))
+print(portfolio_volatility(['000001.SZ','10001686.SH','IF1909'],[10000,10,1],100000,'2019-4','2019-5'))
 #1
 #
 #
