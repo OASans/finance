@@ -62,7 +62,7 @@ def update_stock(conn, c , today):
         # pd.io.sql.to_sql(df, syb, con=conn, if_exists='append')
 
 
-if __name__ == '__main__':
+def update_go():
     today = datetime.today().strftime('%Y-%m-%d')
     conn, c = init()
     if is_tradedate(today):
