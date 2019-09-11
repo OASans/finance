@@ -1,9 +1,11 @@
 import sqlite3
 import numpy as np
-from lstm_predict import lstm_pred
 
+#外部函数看main里的
+
+#内部函数
 def get_close_price(stock_code,start_date,end_date):
-    conn = sqlite3.connect('finance_set.db')
+    conn = sqlite3.connect('fin_set.db')
     cursor = conn.cursor()
     result = cursor.execute(
         'select date,close from {} where date>={} and date <={}'.format(stock_code, '"' + start_date + '"',
@@ -14,10 +16,11 @@ def get_close_price(stock_code,start_date,end_date):
     conn.close()
     return dates_prices
 
+#内部函数
 def get_N_days_close(stock_code,end_date,day_num=10):
-    conn = sqlite3.connect('finance_set.db')
+    conn = sqlite3.connect('fin_set.db')
     cursor = conn.cursor()
-    result = cursor.execute('select date,close from {} where date <={} order by date desc'.format(stock_code, '"' + end_date + '"'))
+    result = cursor.execute('select date,close from {} where date <= {} order by date desc'.format(stock_code, '"' + end_date + '"'))
     count = 0
     dates_prices=[]
     for row in result:
@@ -54,6 +57,7 @@ def portfolio_history_return(portfolio,shares,start_date,end_date):
         returns.append((cur-pre)/pre)
 
     return dates[1:],returns
+
 
 def portfolio_history_vol(portfolio,shares,start_date,end_date):
     """
@@ -120,35 +124,87 @@ def pred_portfolio_var(portfolio,shares,date):
     return total[-1] - total[-1]*return95
 
 def pred_stock_vol(stock_code,date):
-    conn = sqlite3.connect('finance_set.db')
+    conn = sqlite3.connect('fin_set.db')
     cursor = conn.cursor()
-    result = cursor.execute(
-        'select date,close from {} where date <={} order by date desc'.format(stock_code, '"' + date + '"'))
-    count = 0
-    dates_prices = []
+    result = cursor.execute('select EST_V from from ESTSTK where TRADECODE = ? and DATE = ?',(stock_code,date,))
     for row in result:
-        dates_prices.append(row)
-        count += 1
-        if count == 31:
+        pred = float(row[0])
+        break
+    conn.close()
+    return pred
+
+
+def pred_stock_return(stock_code,date,method = 'lstm'):
+    conn = sqlite3.connect('fin_set.db')
+    cursor = conn.cursor()
+    if method == 'lstm':
+        result = cursor.execute('select EST_R from ESTSTK where TRADECODE = ? and DATE = ?',(stock_code,date,))
+        for row in result:
+            pred=float(row[0])
+            break
+        conn.close()
+        return pred
+    else: #cnn预测法
+        result = cursor.execute('select EST_R_2 from ESTSTK where TRADECODE = ? and DATE = ?',(stock_code,date,))
+        for row in result:
+            pred = float(row[0])
+            break
+        conn.close()
+        return pred
+
+
+def pred_portfolio_return(portfolio,shares,date,method = 'lstm'):
+    """
+    portfolio是包含stock_code的列表,如果是单只股票则只包含一个stock_code即可
+    shares是每个股票数量的列表与stock_code一一对应
+    预测该portfolio在date之后一日的收益率
+    方法默认是lstm
+    """
+    conn = sqlite3.connect('fin_set.db')
+    cursor = conn.cursor()
+    prices=[]
+    for stock_code in portfolio:
+        result = cursor.execute('select close from {} where date <= {}'.format(stock_code,'"'+date+'"'))
+        for row in result:
+            prices.append(row[0])
             break
     conn.close()
-    start_date = dates_prices[-1][0]
-    portfolio=[stock_code]
-    shares=[1]
-    d,history_vols = portfolio_history_vol(portfolio,shares,start_date,date)
-    ls = lstm_pred(history_vols)
-    pred_vol = ls.predict()
-    return pred_vol
+    pred_returns=[]
+    for stock_code in portfolio:
+        pred_returns.append(pred_stock_return(stock_code,date,method))
+    cur_total = 0
+    pred_total = 0
+    for i in range(len(shares)):
+        cur_total += shares[i]*prices[i]
+        pred_total += shares[i]*prices[i]*(1+pred_returns[i])
+
+    return (pred_total-cur_total)/cur_total
 
 if __name__=='__main__':
-    #内部测试
-    dp = get_close_price('SH600717','2019-02-01','2019-03-01')
-    print(dp)
-    dp2 = get_N_days_close('SH600000','2019-03-01',20)
-    portfolio=['SH600000','SH600717']
+    #外部接口
+    #预测股票收益率 此处加了功能 如果不是lstm 就是cnn
+    float_a=pred_stock_return('SH600717', '2018-01-02','lstm')
+
+    #预测股票波动率
+    float_b=pred_stock_vol('SH600717', '2018-01-02')
+    portfolio = ['SH600000','SH600717']
     shares=[100,200]
-    print(portfolio_history_return(portfolio,shares,'2019-02-01','2019-03-01'))
-    dates,vols=portfolio_history_vol(portfolio,shares,'2019-02-01','2019-03-01')
-    print(pred_portfolio_var(portfolio,shares,'2015-07-01'))
-    print(pred_stock_vol('SH600717','2019-04-01'))
+
+    #预测组合收益率
+    float_c=pred_portfolio_return(portfolio,shares,'2018-01-02')
+
+    #计算组合VaR
+    float_d=pred_portfolio_var(portfolio,shares,'2018-01-02')
+
+    #计算组合历史收益率 不包括起始日
+    dates_list_a,floats_list_a = portfolio_history_return(portfolio,shares,'2018-01-02','2019-06-12')
+
+    # 计算组合历史波动率 不包括起始日
+    dates_list_b,floats_list_b = portfolio_history_vol(portfolio,shares,'2018-01-02','2019-06-12')
+
+
+
+
+
+
 
