@@ -5,7 +5,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -99,14 +99,14 @@ class CNN(nn.Module):
 """
     CNN模型的训练函数
 """
-def CNN_train(model, xtrain, ytrain):
+def CNN_train(model, xtrain, ytrain,cnn):
     criterion = nn.MSELoss(reduction='sum')
 
     # 优化器
     optimizer = optim.LBFGS(cnn.parameters(), lr=0.1)
 
     # 开始训练    
-    for i in range(5):
+    for i in range(4):
         print('STEP: ', i)
     
         def closure():
@@ -134,7 +134,7 @@ def CNN_train(model, xtrain, ytrain):
                                         ...
                                        z(i+1)]
 """
-def CNN_predict(model, sample):
+def CNN_predict(model, sample,cnn):
     # 对输入进行预处理
     sample = torch.from_numpy(np.array(sample))
     sample = sample.unsqueeze(0).unsqueeze(0)   # 变成单通道图片，并且batch大小为1
@@ -145,35 +145,79 @@ def CNN_predict(model, sample):
     return pred[0].tolist()                # 返回预测值（即最后一组输出）    
         
         
-        
-if __name__ == "__main__":
-    rawset = list(np.random.rand(5,40))
+def final_cnn_predict(rawset):
+    sample = [[] for i in range(5)]
+    for i in range(5):
+        sample[i]=rawset[i].copy()[-30:]
+    rawset = list(np.array(rawset))
+    sample = list(np.array(sample))
+
     trainset, trainlabel = CNN_rawset2trainset(rawset, 30)
 
     # 将ndarray转为tensor
     trainset = torch.from_numpy(trainset)
     trainlabel = torch.from_numpy(trainlabel)
-    
+
     # 将训练数据变成单通道图片
     trainset = trainset.unsqueeze(1)
-    
+
     """
     print(trainset.shape)
     print(trainlabel.shape)
     """
-    
+
     # 建立CNN模型
     cnn = CNN().double()
-    
+
     # 测试模型有无错误
     out = cnn.forward(trainset)
     print(out.shape)
-    
+
     # 训练CNN模型
-    cnn = CNN_train(cnn, trainset, trainlabel)
-    
+    cnn = CNN_train(cnn, trainset, trainlabel,cnn)
+
     # 利用CNN模型进行预测
-    sample = list(np.random.rand(5,30))
-    label = CNN_predict(cnn, sample)
-    print(label)
+    label = CNN_predict(cnn, sample,cnn)
+    return label
+
+if __name__ == "__main__":
+    # rawset = np.random.rand(5,31)
+    rawset = [[10+random.random() for i in range(40)],
+              [20+random.random() for i in range(40)],
+              [30+random.random() for i in range(40)],
+              [40+random.random() for i in range(40)],
+              [50+random.random() for i in range(40)]]
+#    sample = [[] for i in range(5)]
+#    for i in range(5):
+#        sample[i]=rawset[i].copy()[-30:]
+#    trainset, trainlabel = CNN_rawset2trainset(rawset, 30)
+#
+#    # 将ndarray转为tensor
+#    trainset = torch.from_numpy(trainset)
+#    trainlabel = torch.from_numpy(trainlabel)
+#
+#    # 将训练数据变成单通道图片
+#    trainset = trainset.unsqueeze(1)
+#
+#    """
+#    print(trainset.shape)
+#    print(trainlabel.shape)
+#    """
+#
+#    # 建立CNN模型
+#    cnn = CNN().double()
+#
+#    # 测试模型有无错误
+#    out = cnn.forward(trainset)
+#    print(out.shape)
+#
+#    # 训练CNN模型
+#    cnn = CNN_train(cnn, trainset, trainlabel)
+#
+#    # 利用CNN模型进行预测
+#    sample = list(np.array(sample))
+#    label = CNN_predict(cnn, sample)
+
+    print(final_cnn_predict(rawset))
+    #print(final_cnn_predict(rawset))
     

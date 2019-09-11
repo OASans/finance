@@ -553,7 +553,33 @@ def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
     sql_selected=sql_selected.sort_values(by='chg',ascending=False)
     return list(sql_selected['TRADECODE'])
 
-# def portfolio_beta():
-# cpy实现
 
-# print(generate_recommend_future('123',['000001.SZ','10001689.SH','10001697.SH'],[100000,0,0],100000))
+def get_portfolio_beta(asset_id,weight_list):
+    from sklearn.linear_model import LinearRegression
+    stock_list=[id[-2:]+id[:6] for id in asset_id]
+    beta_list = []
+    for each in stock_list:
+        df_total = pd.DataFrame(list(c.execute("SELECT * from " + each)))
+        if df_total.empty:
+            return np.nan
+        r = df_total.iloc[:, 8] # 股票收益率
+        df_total2 = pd.DataFrame(list(c.execute("SELECT * from MARKET")))
+        rf = df_total2.iloc[:, 2] # 无风险收益率
+        rm = df_total2.iloc[:, 3] # 市场收益率
+        r_excess = r - rf
+        rm_excess = r - rm
+        r_ewma = r_excess.ewm(halflife=63).mean()
+        rm_ewma = rm_excess.ewm(halflife=63).mean()
+        r_ewma = np.array([r_ewma.tolist()]).T
+        rm_ewma = np.array([rm_ewma.tolist()]).T
+        mx = LinearRegression()
+        mx.fit(rm_ewma, r_ewma)
+        beta = mx.coef_[0][0]
+        beta_list = beta_list + [beta]
+    beta_mean = 0
+    for index in range(0, len(weight_list)):
+        beta_mean = beta_mean +beta_list[index] * weight_list[index]
+    return beta_mean
+
+
+# print(get_portfolio_beta(['000001.SZ','000010.SZ'],[100,100]))
