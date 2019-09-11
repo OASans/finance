@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-def stock_poundage(DealAmount, BuyIn=True, BCRate=0.003):
-
-=======
-def poundage(DealAmount, BuyIn=True, BCRate=0.002):
+def stock_poundage(DealAmount, BuyIn=True, BCRate=0.002):
     
->>>>>>> ff3a61515f75023e14ad4b0567d0bb5fadbd0e48
     # 用户仅在卖出股票时要缴纳印花税
     if BuyIn:
         StampDuty = 0
