@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 11 23:36:12 2019
+Created on Wed Sep 12 10:55:12 2019
 
 @author: yangfan
 """
@@ -104,13 +104,13 @@ def calculation(options):#options是期权的交易代码
 
 
     #MARKET
-    sql1="select * from MARKET "
-    sql_mar=pd.DataFrame(list(c.execute(sql1)),columns=['index','DATE','RF','RM'])
+    sql1="select DATE, RF from MARKET "
+    sql_mar=pd.DataFrame(list(c.execute(sql1)),columns=['DATE','RF'])
     
     #定位到今日的市场宏观数据
     rf_index=sql_mar.loc[sql_mar['DATE']==today_temp]
-    r=rf_index['RF'] #当日的无风险利率rf
-    #r=0.03 test用，当时无0909的rf值
+    #r=rf_index['RF'] #当日的无风险利率rf
+    r=2.597*0.01 #test用，当时无0909的rf值
     #test：option='10001688.SH'#输入的期权代码
     
     option_list=sql_dat.loc[sql_dat['TRADECODE']==options]#该期权的行权信息和日期
