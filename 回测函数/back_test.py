@@ -237,18 +237,18 @@ def back_test(begin_asset_id, begin_asset_amount,begin_cash, policy, begin_t, en
 
 
 # use examples
-# d=back_test(['000001.SZ','10001677.SH','10001686.SH'],[100000,0,0],100000,policy_stay_calm,'2019-1','2019-9',1)
+# d=back_test(['000001.SZ','10001689.SH','10001681.SH'],[100000,0,0],100000,policy_stay_calm,'2019-1','2019-9',1)
 # from matplotlib import pyplot as plt
 # plt.figure()
 # plt.plot_date(d.index,d.values,label='No Hedging',fmt='-')
 #
-# dd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_delta,'2019-1','2019-9',1)#10001677SH
+# dd=back_test(['000001.SZ','10001689.SH','10001681.SH'],[100000,0,0],100000,policy_delta,'2019-1','2019-9',1)#10001677SH
 #
 # # dd=back_test(['000001.SZ','IF1909','000010.SZ'],[100000,0,100000],1000000,policy_example3,'2019-4','2019-7',1)
 # plt.plot_date(dd.index,dd.values,label='ML-Delta Dynamic Hedging',fmt='-')
 # print('-----------------')
 #
-# ddd=back_test(['000001.SZ','10001686.SH','10001677.SH'],[100000,0,0],100000,policy_gamma,'2019-1','2019-9',1)
+# ddd=back_test(['000001.SZ','10001689.SH','10001681.SH'],[100000,0,0],100000,policy_gamma,'2019-1','2019-9',1)
 # plt.plot_date(ddd.index,ddd.values,label='Beta Hedging',fmt='-')
 # plt.legend()
 # plt.show()

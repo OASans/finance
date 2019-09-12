@@ -133,38 +133,63 @@ def LSTM_predict(model, sample):
     sample = sample.unsqueeze(0)                
     
     with torch.no_grad():
-        pred  = lstm(sample)
+        pred  = model(sample)
     
     return pred[0].tolist()[-1]                 # 返回预测值（即最后一组输出）
  
- 
-        
-if __name__ == "__main__":
-    rawset = [[4.0,2.0,5.0,6.0,4.0],
-              [8.0,9.0,7.0,6.0,9.0],
-              [5.0,6.0,4.0,7.0,5.0],
-              [4.2,5.4,6.5,7.8,9.8],
-              [1.2,5.4,3.4,2.3,4.2]]
+
+def final_lstm_predict(rawset):
     trainset, trainlabel = LSTM_rawset2trainset(rawset, 2)
-    
+
     # 将ndarray转为tensor
     trainset = torch.from_numpy(trainset)
     trainlabel = torch.from_numpy(trainlabel)
-    
+
     # 将tensor的后两个维度进行交换，由[N, dim, SEQ_LENGTH]形式变成[N, SEQ_LENGTH, dim]形式
-    trainset = trainset.transpose(1,2)
-    trainlabel = trainlabel.transpose(1,2)
-    
+    trainset = trainset.transpose(1, 2)
+    trainlabel = trainlabel.transpose(1, 2)
+
     # 构建LSTM模型
     lstm = LSTM(num_of_factors=5).double()
-    
+
     # 测试模型有无错误
     out = lstm.forward(trainset)
     print(out.shape)
-    
+
     # 训练LSTM模型
     lstm = LSTM_train(lstm, trainset, trainlabel)
-    
+
     # 利用LSTM模型进行预测
     label = LSTM_predict(lstm, rawset)
-    print(label)
+    return label
+        
+if __name__ == "__main__":
+    rawset = [[4.0,2.0,5.0,6.0,4.0,4.0,2.0,5.0,6.0,4.0,4.0,2.0,5.0,6.0,4.0,4.0,2.0,5.0,6.0,4.0,4.0,2.0,5.0,6.0,4.0],
+              [8.0,9.0,7.0,6.0,9.0,8.0,9.0,7.0,6.0,9.0,8.0,9.0,7.0,6.0,9.0,8.0,9.0,7.0,6.0,9.0,8.0,9.0,7.0,6.0,9.0],
+              [5.0,6.0,4.0,7.0,5.0,5.0,6.0,4.0,7.0,5.0,5.0,6.0,4.0,7.0,5.0,5.0,6.0,4.0,7.0,5.0,5.0,6.0,4.0,7.0,5.0],
+              [4.2,5.4,6.5,7.8,9.8,4.2,5.4,6.5,7.8,9.8,4.2,5.4,6.5,7.8,9.8,4.2,5.4,6.5,7.8,9.8,4.2,5.4,6.5,7.8,9.8],
+              [1.2,5.4,3.4,2.3,4.2,1.2,5.4,3.4,2.3,4.2,1.2,5.4,3.4,2.3,4.2,1.2,5.4,3.4,2.3,4.2,1.2,5.4,3.4,2.3,4.2]]
+    # trainset, trainlabel = LSTM_rawset2trainset(rawset, 2)
+    #
+    # # 将ndarray转为tensor
+    # trainset = torch.from_numpy(trainset)
+    # trainlabel = torch.from_numpy(trainlabel)
+    #
+    # # 将tensor的后两个维度进行交换，由[N, dim, SEQ_LENGTH]形式变成[N, SEQ_LENGTH, dim]形式
+    # trainset = trainset.transpose(1,2)
+    # trainlabel = trainlabel.transpose(1,2)
+    #
+    # # 构建LSTM模型
+    # lstm = LSTM(num_of_factors=5).double()
+    #
+    # # 测试模型有无错误
+    # out = lstm.forward(trainset)
+    # print(out.shape)
+    #
+    # # 训练LSTM模型
+    # lstm = LSTM_train(lstm, trainset, trainlabel)
+    #
+    # # 利用LSTM模型进行预测
+    # label = LSTM_predict(lstm, rawset)
+    # print(label)
+    print(final_lstm_predict(rawset))
