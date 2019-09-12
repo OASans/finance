@@ -380,7 +380,7 @@ def load_train_data(asset_id,asset_mount,cash,options,begin_t='',end_t='',mode=0
 
 def train_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
     data_train=load_train_data(asset_id, asset_mount, cash, options,train=1)
-    rfr = RandomForestRegressor()
+    rfr = RandomForestRegressor(n_estimators=15,n_jobs=8)
     rfr.fit(data_train.iloc[:,:-2].values,data_train.iloc[:,-1].values)
     joblib.dump(rfr,str(protfolio_id)+"_delta"+str(num)+".m")
 
@@ -397,12 +397,20 @@ def train_delta_model(protfolio_id,asset_id,asset_mount,cash,options,num=0):
 
     return rfr
 
+def rename_delta_model(protfolio_id):
+    try:
+        model=joblib.load(str(protfolio_id)+"_delta"+str(0)+".m")
+    except:
+        model=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options)
+    joblib.dump(model,str(protfolio_id)+"_delta"+str(10)+".m")
+    return
+
 def retrain_delta_model(protfolio_id,asset_id,asset_mount,cash,options,test=0):
     return train_delta_model(protfolio_id, asset_id, asset_mount, cash, options,num=test*10)
 
 def train_gamma_model(protfolio_id,asset_id,asset_mount,cash,options,num):
     data_train=load_train_data(asset_id, asset_mount, cash, options,mode=1,train=1)
-    rfr = RandomForestRegressor()
+    rfr = RandomForestRegressor(n_estimators=15,n_jobs=8)
     rfr.fit(data_train.iloc[:,:-4].values,data_train.iloc[:,-1].values)
     joblib.dump(rfr,str(protfolio_id)+"_gamma"+str(num)+".m")
     return rfr
@@ -412,6 +420,30 @@ def retrain_gamma_model(protfolio_id,asset_id,asset_mount,cash,options1,options2
     model2=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
     model3=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options1,10*test+1)
     model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
+
+def rename_gamma_model(protfolio_id):
+    test=0
+    try:
+        model1=joblib.load(str(protfolio_id)+"_gamma"+str(10*test+1)+".m")
+    except:
+        model1=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options1,10*test+1)
+    try:
+        model2=joblib.load(str(protfolio_id)+"_gamma"+str(10*test+2)+".m")
+    except:
+        model2=train_gamma_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
+    try:
+        model3=joblib.load(str(protfolio_id)+"_delta"+str(10*test+1)+".m")
+    except:
+        model3=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options1,10*test+1)
+    try:
+        model4=joblib.load(str(protfolio_id)+"_delta"+str(10*test+2)+".m")
+    except:
+        model4=train_delta_model(protfolio_id, asset_id, asset_mount, cash, options2,10*test+2)
+    joblib.dump(model3,str(protfolio_id)+"_delta"+str(11)+".m")
+    joblib.dump(model4,str(protfolio_id)+"_delta"+str(12)+".m")
+    joblib.dump(model1,str(protfolio_id)+"_gamma"+str(11)+".m")
+    joblib.dump(model2,str(protfolio_id)+"_gamma"+str(12)+".m")
+    return
 
 
 def fit_delta(protfolio_id,asset_id,asset_mount,cash,options,begin_t,end_t,test=0):
@@ -480,6 +512,14 @@ def load_train_future_data(asset_id,asset_mount,cash,future,begin_t='',end_t='')
 def retrain_beta_model(protfolio_id,asset_id,asset_mount,cash,futures,num=0):
     return train_beta_model(protfolio_id, asset_id, asset_mount, cash, futures,num=num)
 
+def rename_beta_model(protfolio_id):
+    try:
+        model=joblib.load(str(protfolio_id)+"_beta"+str(0)+".m")
+    except:
+        model=train_beta_model(protfolio_id, asset_id, asset_mount, cash, futures,0)
+    joblib.dump(model,str(protfolio_id)+"_beta"+str(10)+".m")
+    return
+
 def train_beta_model(protfolio_id,asset_id,asset_mount,cash,futures,num=0):
     data_train=load_train_future_data(asset_id, asset_mount, cash, futures)
     model = linear_model.LinearRegression()
@@ -511,47 +551,66 @@ def generate_recommend_option_delta(protfolio_id,asset_id,asset_mount,cash):
     sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','TRADECODE','EXE_PRICE','EXE_MODE','FIRST_DATE','LAST_DATE'])
     sql="select DATE from "+sql_dat['TRADECODE'][0][-2:]+sql_dat['TRADECODE'][0][:8]
     today=list(c.execute(sql))[-1][0]
+    data=[]
+    for ii,i in enumerate(sql_dat['TRADECODE']):
+        sql='select OPEN,HIGH,LOW,CLOSE,OI,VOLUME,IMPLIEDVOL,VOLATILITYRATIO from '+i[-2:]+i[:8]+" where DATE==\'"+today+"\'"
+        data+=[list(list(c.execute(sql))[0])]
+    sql_dat=pd.concat([sql_dat,pd.DataFrame(data)],axis=1)
+    sql_dat.columns=['index','TRADECODE','EXE_PRICE','EXE_MODE','FIRST_DATE','LAST_DATE']+['OPEN','HIGH','LOW','CLOSE','OI','VOLUME','IMPLIEDVOL','VOLATILITYRATIO']
     today=pd.Timestamp(today)
+    sql_dat['chg']=sql_dat['TRADECODE'].map(lambda x:cal_option_change_rate(x,str(today)[:10]))
     sql_dat['LAST_DATE']=sql_dat['LAST_DATE'].map(pd.Timestamp)
     sql_dat['days_left']=sql_dat['LAST_DATE']-today
     sql_dat['days_left']=sql_dat['days_left'].map(lambda x: int(x.days))
-    sql_selected=sql_dat[np.array(sql_dat['days_left']>=40) & np.array(sql_dat['days_left']<=120)]
-    sql_selected=sql_dat[np.array(sql_dat['EXE_PRICE']>=2.3) & np.array(sql_dat['EXE_PRICE']<=2.6)]
+    sql_dat=sql_dat[np.array(sql_dat['days_left']>=40) & np.array(sql_dat['days_left']<=120)]
+    sql_selected=sql_dat[np.array(sql_dat['EXE_PRICE']>=2.1) & np.array(sql_dat['EXE_PRICE']<=2.9)]
     sql_selected=sql_selected[sql_selected['EXE_MODE']=='认购']
-    sql_selected['chg']=sql_dat['TRADECODE'].map(lambda x:cal_option_change_rate(x,str(today)[:10]))
     sql_selected=sql_selected.sort_values(by='chg',ascending=False)
-    # _,val_t=portfolio_total_value(asset_id, asset_mount, cash, str(today)[:10], str(today)[:10])
-    # print(list(sql_selected['TRADECODE']))
-    return list(sql_selected['TRADECODE'])
+    sql_final=pd.concat([sql_selected,sql_dat[[x not in sql_selected.index for x in sql_dat.index]]])
+    return sql_final[['TRADECODE','EXE_PRICE','EXE_MODE','OPEN','HIGH','LOW','CLOSE','OI','VOLUME','IMPLIEDVOL','VOLATILITYRATIO','chg','days_left']]
 
 def generate_recommend_option_gamma(protfolio_id,asset_id,asset_mount,cash):
     sql="select * from OPTIONINFO "
     sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','TRADECODE','EXE_PRICE','EXE_MODE','FIRST_DATE','LAST_DATE'])
     sql="select DATE from "+sql_dat['TRADECODE'][0][-2:]+sql_dat['TRADECODE'][0][:8]
     today=list(c.execute(sql))[-1][0]
+    data=[]
+    for ii,i in enumerate(sql_dat['TRADECODE']):
+        sql='select OPEN,HIGH,LOW,CLOSE,OI,VOLUME,IMPLIEDVOL,VOLATILITYRATIO from '+i[-2:]+i[:8]+" where DATE==\'"+today+"\'"
+        data+=[list(list(c.execute(sql))[0])]
+    sql_dat=pd.concat([sql_dat,pd.DataFrame(data)],axis=1)
+    sql_dat.columns=['index','TRADECODE','EXE_PRICE','EXE_MODE','FIRST_DATE','LAST_DATE']+['OPEN','HIGH','LOW','CLOSE','OI','VOLUME','IMPLIEDVOL','VOLATILITYRATIO']
     today=pd.Timestamp(today)
+    sql_dat['chg']=sql_dat['TRADECODE'].map(lambda x:cal_option_change_rate(x,str(today)[:10]))
     sql_dat['LAST_DATE']=sql_dat['LAST_DATE'].map(pd.Timestamp)
     sql_dat['days_left']=sql_dat['LAST_DATE']-today
     sql_dat['days_left']=sql_dat['days_left'].map(lambda x: int(x.days))
-    sql_selected=sql_dat[np.array(sql_dat['days_left']>=40) & np.array(sql_dat['days_left']<=120)]
-    sql_selected=sql_dat[np.array(sql_dat['EXE_PRICE']>=2.3) & np.array(sql_dat['EXE_PRICE']<=2.6)]
-    sql_selected['chg']=sql_dat['TRADECODE'].map(lambda x:cal_option_change_rate(x,str(today)[:10]))
+    sql_dat=sql_dat[np.array(sql_dat['days_left']>=40) & np.array(sql_dat['days_left']<=120)]
+    sql_selected=sql_dat[np.array(sql_dat['EXE_PRICE']>=2.3) & np.array(sql_dat['EXE_PRICE']<=2.7)]
     sql_selected=sql_selected.sort_values(by='chg',ascending=False)
-    return list(sql_selected['TRADECODE'])
+    sql_final=pd.concat([sql_selected,sql_dat[[x not in sql_selected.index for x in sql_dat.index]]])
+    return sql_final[['TRADECODE','EXE_PRICE','EXE_MODE','OPEN','HIGH','LOW','CLOSE','OI','VOLUME','IMPLIEDVOL','VOLATILITYRATIO','chg','days_left']]
 
 def generate_recommend_future(protfolio_id,asset_id,asset_mount,cash):
     sql="select * from FUTUREINFO "
     sql_dat=pd.DataFrame(list(c.execute(sql)),columns=['index','TRADECODE','WIN_CODE','NAME','FIRST_DATE','LAST_DATE'])
     sql="select DATE from "+sql_dat['TRADECODE'][0]
     today=list(c.execute(sql))[-1][0]
+    data=[]
+    for ii,i in enumerate(sql_dat['TRADECODE']):
+        sql='select OPEN,HIGH,LOW,CLOSE,SETTLE,OI,VOLUME,AMT,VR from '+i+" where DATE==\'"+today+"\'"
+        data+=[list(list(c.execute(sql))[0])]
+    sql_dat=pd.concat([sql_dat,pd.DataFrame(data)],axis=1)
+    sql_dat.columns=['index','TRADECODE','WIN_CODE','NAME','FIRST_DATE','LAST_DATE']+['OPEN','HIGH','LOW','CLOSE','SETTLE','OI','VOLUME','AMT','VR']
     today=pd.Timestamp(today)
+    sql_dat['chg']=sql_dat['TRADECODE'].map(lambda x:cal_future_change_rate(x,str(today)[:10]))
     sql_dat['LAST_DATE']=sql_dat['LAST_DATE'].map(pd.Timestamp)
     sql_dat['days_left']=sql_dat['LAST_DATE']-today
     sql_dat['days_left']=sql_dat['days_left'].map(lambda x: int(x.days))
     sql_selected=sql_dat[np.array(sql_dat['days_left']>=30) & np.array(sql_dat['days_left']<=150)]
-    sql_selected['chg']=sql_dat['TRADECODE'].map(lambda x:cal_future_change_rate(x,str(today)[:10]))
     sql_selected=sql_selected.sort_values(by='chg',ascending=False)
-    return list(sql_selected['TRADECODE'])
+    sql_final=pd.concat([sql_selected,sql_dat[[x not in sql_selected.index for x in sql_dat.index]]])
+    return sql_dat[['TRADECODE','NAME','OPEN','HIGH','LOW','CLOSE','SETTLE','OI','VOLUME','AMT','VR','chg','days_left']]
 
 
 def get_portfolio_beta(asset_id,weight_list):
@@ -583,3 +642,4 @@ def get_portfolio_beta(asset_id,weight_list):
 
 
 # print(get_portfolio_beta(['000001.SZ','000010.SZ'],[100,100]))
+generate_recommend_future('123', ['000001.SZ','000010.SZ'],[100,100], 1000)
