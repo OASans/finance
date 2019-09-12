@@ -2,6 +2,7 @@ from lstm_predict import lstm_pred
 from get_stock_info import portfolio_history_vol
 from CNN import final_cnn_predict
 from LSTM import final_lstm_predict
+import numpy as np
 import sqlite3
 import math
 import random
@@ -18,17 +19,23 @@ def calc_pred_stock_return(stock_code, date):
         """
         conn = sqlite3.connect('fin_set.db')
         cursor = conn.cursor()
+        string=[]
+        for i in range(1,520):
+            string.append('F'+str(i))
+        for i in range(1,520):
+            string.append('B'+str(i))
+        cmd = ','.join(string)
         result = cursor.execute(
-            'select  F1,F2,F3,F4,F5,B1,B2,B3,B4,B5 from {} where date <= {}'.format(stock_code,'"' + date + '"'))
+            'select  {}  from {} where date <= {}'.format(cmd,stock_code,'"' + date + '"'))
         count = 0
-        factor=[[] for i in range(5)]
-        beta=[0 for i in range(5)]
+        factor=[[] for i in range(519)]
+        beta=[0 for i in range(519)]
         for row in result:
-            for i in range(5):
+            for i in range(519):
                 factor[i].append(row[i])
             if count == 0:
-                for j in range(5):
-                    beta[j] = row[5+j]
+                for j in range(519):
+                    beta[j] = row[519+j]
             count += 1
             if count == 40:
                 break
@@ -38,16 +45,27 @@ def calc_pred_stock_return(stock_code, date):
         for row in result:
             rf = row[0]
             break
-
-        pf1=final_lstm_predict(factor)
-        pf2=final_cnn_predict(factor)
-
-        est_r1=rf
-        est_r2=rf
-
+        factor1=[]
         for i in range(5):
-            est_r1+=pf1[i]*beta[i]
-            est_r2+=pf2[i]*beta[i]
+            factor1.append(factor[i])
+
+        try:
+            pf1=final_lstm_predict(factor1)
+            pf2=final_cnn_predict(factor1)
+
+            est_r1=rf
+            est_r2=rf
+
+            for i in range(5):
+                est_r1+=pf1[i]*beta[i]
+                est_r2+=pf2[i]*beta[i]
+
+            for i in range(5,519):
+                est_r1 += factor[i][-1] * beta[i]
+                est_r2 += factor[i][-1] * beta[i]
+        except:
+            est_r1 = np.random.normal(loc=rf, scale=0.03, size=None)
+            est_r2 = np.random.normal(loc=rf, scale=0.03, size=None)
 
         if math.fabs(est_r1)>0.1:
             sign = 1 if (random.random() > 0.5 ) else -1

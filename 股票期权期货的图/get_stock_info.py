@@ -183,24 +183,29 @@ def pred_portfolio_return(portfolio,shares,date,method = 'lstm'):
 if __name__=='__main__':
     #外部接口
     #预测股票收益率 此处加了功能 如果不是lstm 就是cnn
-    float_a=pred_stock_return('SH600717', '2018-01-02','lstm')
-
-    #预测股票波动率
-    float_b=pred_stock_vol('SH600717', '2018-01-02')
-    portfolio = ['SH600000','SH600717']
+    # float_a=pred_stock_return('SH600717', '2018-01-02','lstm')
+    #
+    # #预测股票波动率
+    # float_b=pred_stock_vol('SH600717', '2018-01-02')
+    # portfolio = ['SH600000','SH600717']
+    # shares=[100,200]
+    #
+    # #预测组合收益率
+    # float_c=pred_portfolio_return(portfolio,shares,'2018-01-02')
+    #
+    # #计算组合VaR
+    # float_d=pred_portfolio_var(portfolio,shares,'2018-01-02')
+    #
+    # #计算组合历史收益率 不包括起始日
+    # dates_list_a,floats_list_a = portfolio_history_return(portfolio,shares,'2018-01-02','2019-06-12')
+    #
+    # # 计算组合历史波动率 不包括起始日
+    # dates_list_b,floats_list_b = portfolio_history_vol(portfolio,shares,'2018-01-02','2019-06-12')
+    portfolio=['SZ000002','SZ000004']
     shares=[100,200]
+    print(pred_stock_return('SZ000002','2018-01-02'))
+    print(pred_portfolio_return(portfolio,shares,'2018-01-02','lstm'))
 
-    #预测组合收益率
-    float_c=pred_portfolio_return(portfolio,shares,'2018-01-02')
-
-    #计算组合VaR
-    float_d=pred_portfolio_var(portfolio,shares,'2018-01-02')
-
-    #计算组合历史收益率 不包括起始日
-    dates_list_a,floats_list_a = portfolio_history_return(portfolio,shares,'2018-01-02','2019-06-12')
-
-    # 计算组合历史波动率 不包括起始日
-    dates_list_b,floats_list_b = portfolio_history_vol(portfolio,shares,'2018-01-02','2019-06-12')
 
 
 
