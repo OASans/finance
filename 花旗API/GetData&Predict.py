@@ -395,7 +395,7 @@ def mypredict(mymodel):
 
 # ### K-Means and Visualization
 
-# In[23]:
+# In[17]:
 
 
 from sklearn.cluster import KMeans
@@ -412,11 +412,11 @@ def myKMeans(DataSet):
     #print(y_pred)
     pca=PCA(n_components=2)
     newData=pca.fit_transform(DataSet)
-    color = ['HotPink', 'Aqua', 'Chartreuse', 'yellow', 'LightSalmon']
+    color = ['HotPink', 'Black', 'Chartreuse', 'red', 'darkorange']
     colors=np.array(color)[y_pred]
     #plt.scatter(newData[:, 0], newData[:, 1], c=colors)
     ###展示聚类效果图
-    #plt.show()
+    ##plt.show()
     return model
 
 
@@ -510,7 +510,7 @@ def showNeighbors(mymodel,sample):
 
 # ### Main
 
-# In[25]:
+# In[22]:
 
 
 global Income
@@ -538,7 +538,7 @@ ExpectReturn=[]
 PlanTime=[]
 RiskTol=[]
 DataSet=[]
-N=100  ##模式1 100个数据
+N=300  ##模式1 300个数据
 method=0 ## 两种模式 0外在获得输入 1 API获得
 
 if __name__=="__main__":
