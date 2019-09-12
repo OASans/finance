@@ -19,35 +19,53 @@ def calc_pred_stock_return(stock_code, date):
         """
         conn = sqlite3.connect('fin_set.db')
         cursor = conn.cursor()
-        string=[]
+        string1=[]
+        string2=[]
+        string3=[]
+        for i in range(1,8):
+            string1.append('F'+str(i))
         for i in range(1,520):
-            string.append('F'+str(i))
-        for i in range(1,520):
-            string.append('B'+str(i))
-        cmd = ','.join(string)
+            string2.append('B'+str(i))
+
+        for i in range(8,520):
+            string3.append('F'+str(i))
+
+        cmd1 = ','.join(string1)
+        cmd2 = ','.join(string2)
+        cmd3 = ','.join(string3)
         result = cursor.execute(
-            'select  {}  from {} where date <= {}'.format(cmd,stock_code,'"' + date + '"'))
+            'select  {}  from {} where date <= {}'.format(cmd1,stock_code,'"' + date + '"'))
         count = 0
-        factor=[[] for i in range(519)]
+        factor1=[[] for i in range(5)]
+        factor2=[[] for i in range(514)]
         beta=[0 for i in range(519)]
         for row in result:
-            for i in range(519):
-                factor[i].append(row[i])
-            if count == 0:
-                for j in range(519):
-                    beta[j] = row[519+j]
+            for i in range(5):
+                factor1[i].append(row[i])
+            for i in range(2):
+                factor2[i].append(row[5+i])
             count += 1
             if count == 40:
                 break
+
+        result = cursor.execute(
+            'select  {}  from BETA '.format(cmd2))
+
+        for row in result:
+            for i in range(520):
+                beta[i] = row[i]
+
+        result = cursor.execute(
+            'select  {}  from MARKET '.format(cmd3))
+        for row in result:
+            for i in range(512):
+                factor2[i+2].append(row[i])
 
         result = cursor.execute('select RF from MARKET where date = {}'.format('"' + date + '"'))
         rf = 0
         for row in result:
             rf = row[0]
             break
-        factor1=[]
-        for i in range(5):
-            factor1.append(factor[i])
 
         try:
             pf1=final_lstm_predict(factor1)
@@ -60,9 +78,9 @@ def calc_pred_stock_return(stock_code, date):
                 est_r1+=pf1[i]*beta[i]
                 est_r2+=pf2[i]*beta[i]
 
-            for i in range(5,519):
-                est_r1 += factor[i][-1] * beta[i]
-                est_r2 += factor[i][-1] * beta[i]
+            for i in range(514):
+                est_r1 += factor2[i][-1] * beta[i+5]
+                est_r2 += factor2[i][-1] * beta[i+5]
         except:
             est_r1 = np.random.normal(loc=rf, scale=0.03, size=None)
             est_r2 = np.random.normal(loc=rf, scale=0.03, size=None)
