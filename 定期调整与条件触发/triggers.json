@@ -1,0 +1,145 @@
+[
+    {
+        "id":1,
+        "name":"个股收益率",
+        "type":0,
+        "timeCycleList":[1,7,30],
+        "range":[-1.00,10.00],
+        "limits":[1,1],
+        "description":"设定个股平均收益率的上界和下界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":2,
+        "name":"个股波动率",
+        "type":0,
+        "timeCycleList":[10,21,45],
+        "range":[0.00,10.00],
+        "limits":[0,1],
+        "description":"设定个股波动率的上界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":3,
+        "name":"个股涨跌幅",
+        "type":0,
+        "timeCycleList":[1,7,30],
+        "range":[-10.00,10.00],
+        "limits":[1,1],
+        "description":"设定个股涨跌幅的上界和下界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":4,
+        "name":"个股换手率",
+        "type":0,
+        "timeCycleList":[],
+        "range":[0.00,1.00],
+        "limits":[1,1],
+        "description":"设定个股换手率的上界和下界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":5,
+        "name":"MACD",
+        "type":0,
+        "timeCycleList":[],
+        "range":[-100,100],
+        "limits":[1,1],
+        "description":"设定个股MACD指标的上界和下界",
+        "percent_input": false,
+        "valid_without_option": true
+    },
+    {
+        "id":6,
+        "name":"RSI",
+        "type":0,
+        "timeCycleList":[6,12,24],
+        "range":[-1000,1000],
+        "limits":[1,1],
+        "description":"设定个股RSI指标的上界和下界",
+        "percent_input": false,
+        "valid_without_option": true
+    },
+    {
+        "id":7,
+        "name":"KDJ",
+        "type":0,
+        "timeCycleList":[],
+        "range":[0,100],
+        "limits":[0,1],
+        "description":"设定个股K, D, J指标的上界",
+        "percent_input": false,
+        "valid_without_option": true
+    },
+    {
+        "id":8,
+        "name":"ROC",
+        "type":0,
+        "timeCycleList":[1,3,7,14,15,21,30,45,60,120,180,360],
+        "range":[-10,10],
+        "limits":[1,1],
+        "description":"设定个股ROC指标的上界和下界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":9,
+        "name":"组合收益率",
+        "type":1,
+        "timeCycleList":[1,7,30],
+        "range":[-1.00,10.00],
+        "limits":[1,1],
+        "description":"设定组合平均收益率的上界和下界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":10,
+        "name":"组合波动率",
+        "type":1,
+        "timeCycleList":[],
+        "range":[0.00,10.00],
+        "limits":[0,1],
+        "description":"设定组合日波动率的上界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":11,
+        "name":"组合涨跌幅",
+        "type":1,
+        "timeCycleList":[1,7,30],
+        "range":[-10.00,10.00],
+        "limits":[1,1],
+        "description":"设定组合涨跌幅的上界和下界",
+        "percent_input": true,
+        "valid_without_option": true
+    },
+    {
+        "id":12,
+        "name":"VaR",
+        "type":1,
+        "timeCycleList":[],
+        "range":[0,100000],
+        "limits":[0,1],
+        "description":"设定组合VaR的上界",
+        "percent_input": false,
+        "valid_without_option": true
+    },
+    {
+        "id":13,
+        "name":"组合Delta差值",
+        "type":1,
+        "timeCycleList":[],
+        "range":[0,1000],
+        "limits":[0,1],
+        "description":"设定组合diff的上界",
+        "percent_input": false,
+        "valid_without_option": false
+    }
+]

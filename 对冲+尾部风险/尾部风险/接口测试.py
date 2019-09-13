@@ -34,7 +34,7 @@ def getParam():
     optionInfo = pd.DataFrame(list(c.execute(optionInfo_sql)), columns=['期权代码', '行权价格', '看涨/看跌', '剩余存续期'])
 
     # yesterday = (datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y-%m-%d")
-    yesterday = "2019-09-06"  # 深夜测试，数据库未更新
+    yesterday = "2019-09-11"  # 深夜测试，数据库未更新
 
     for i, v in enumerate(optionInfo['剩余存续期']):
         expiredate = datetime.datetime.strptime(v, '%Y-%m-%d') - datetime.datetime.strptime(yesterday, '%Y-%m-%d')
@@ -50,10 +50,11 @@ def getParam():
     optionInfo = pd.concat([optionInfo, optionClose], axis=1)
     optionInfo['红利q'] = 0
 
-    r_sql = "select RF from MARKET WHERE DATE='" + yesterday + "'"
+    # r_sql = "select RF from MARKET WHERE DATE='" + yesterday + "'"
+    r_sql = "select RF from MARKET WHERE DATE='" + "2019-09-06" + "'" # 要更新
     r = list(c.execute(r_sql))[0][0]
 
-    S_sql = "select CLOSE from SH510050 WHERE DATE='" + yesterday + "'"
+    S_sql = "select CLOSE from etf50 WHERE DATE='" + yesterday + "'"
     S = list(c.execute(S_sql))[0][0]
 
     conn.close()
