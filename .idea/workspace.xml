@@ -3,10 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="1350069e-18d4-44f4-815e-cf0619940f3b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/libraries/R_User_Library.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/R_User_Library.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/多因子/市场风险控制(beta/calbeta.py" beforeDir="false" afterPath="$PROJECT_DIR$/多因子/市场风险控制(beta/calbeta.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/多因子/市场风险控制(beta/calfacter.py" beforeDir="false" afterPath="$PROJECT_DIR$/多因子/市场风险控制(beta/calfacter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/接口测试.py" beforeDir="false" afterPath="$PROJECT_DIR$/对冲+尾部风险/尾部风险/接口测试.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,8 +16,8 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/finance$.coverage" NAME="接口测试 Coverage Results" MODIFIED="1568138914904" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/对冲+尾部风险/尾部风险" />
     <SUITE FILE_PATH="coverage/finance$aiqingshiPart.coverage" NAME="aiqingshiPart Coverage Results" MODIFIED="1566977785162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/定期调整与条件触发" />
+    <SUITE FILE_PATH="coverage/finance$.coverage" NAME="接口测试 Coverage Results" MODIFIED="1568138914904" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/对冲+尾部风险/尾部风险" />
     <SUITE FILE_PATH="coverage/finance$part_2.coverage" NAME="part 2 Coverage Results" MODIFIED="1567063062283" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/定期调整与条件触发" />
   </component>
   <component name="DatabaseView">
@@ -52,7 +53,16 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="das://81a2a216-ae07-4a79-856c-8e0e293418af/schema/main/table/SZ000001">
+        <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/接口测试.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="17" column="36" lean-forward="true" selection-start-line="17" selection-start-column="36" selection-end-line="17" selection-end-column="36" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="das://cd85adbb-1d42-429d-83bc-5a04746ab295/schema/main/table/etf50">
           <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
             <state>
               <filtering enabled="true" />
@@ -81,10 +91,11 @@
         <option value="$PROJECT_DIR$/对冲+尾部风险/尾部风险/tail risk函数文档.md" />
         <option value="$PROJECT_DIR$/定期调整与条件触发/定期调整与条件触发函数说明.md" />
         <option value="$PROJECT_DIR$/定期调整与条件触发/part 2.py" />
+        <option value="$PROJECT_DIR$/对冲+尾部风险/尾部风险/接口测试.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" fullScreen="true">
     <option name="x" value="85" />
     <option name="y" value="-27" />
     <option name="width" value="1544" />
@@ -144,13 +155,6 @@
             <path>
               <item name="finance" type="b2602c69:ProjectViewProjectNode" />
               <item name="finance" type="462c0819:PsiDirectoryNode" />
-              <item name="对冲+尾部风险" type="462c0819:PsiDirectoryNode" />
-              <item name="尾部风险" type="462c0819:PsiDirectoryNode" />
-              <item name="图示意" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="finance" type="b2602c69:ProjectViewProjectNode" />
-              <item name="finance" type="462c0819:PsiDirectoryNode" />
               <item name="获取资产的基本数据" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -164,7 +168,7 @@
     <property name="DatabaseDriversLRU" value="sqlite" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="database.console.LAST_STATE" value="true" />
+    <property name="database.console.LAST_STATE" value="false" />
     <property name="go.gopath.indexing.explicitly.defined" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
@@ -190,7 +194,26 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.aiqingshiPart">
+  <component name="RunManager" selected="Python.接口测试">
+    <configuration name="接口测试" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="finance" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/对冲+尾部风险/尾部风险" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/对冲+尾部风险/尾部风险/接口测试.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
       <module name="finance" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -257,6 +280,11 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.接口测试" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -275,11 +303,12 @@
       <workItem from="1568087040572" duration="4033000" />
       <workItem from="1568105021820" duration="289000" />
       <workItem from="1568211012255" duration="1688000" />
+      <workItem from="1568341276898" duration="766000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="33977000" />
+    <option name="totallyTimeSpent" value="34743000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -291,9 +320,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
+    <frame x="0" y="0" width="1680" height="1050" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18230563" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.18437119" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info id="Designer" order="3" />
@@ -310,20 +340,20 @@
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3296582" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.3296582" />
-      <window_info anchor="bottom" id="Database Changes" order="9" weight="0.3286119" />
+      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" weight="0.3286119" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Terminal" order="11" weight="0.3286119" />
-      <window_info anchor="bottom" id="Python Console" order="12" visible="true" weight="0.3296582" />
+      <window_info anchor="bottom" id="Python Console" order="12" visible="true" weight="0.32959184" />
       <window_info anchor="bottom" id="DB Execution Console" order="13" />
-      <window_info anchor="bottom" id="Database Console" order="14" visible="true" weight="0.3286119" />
+      <window_info anchor="bottom" id="Database Console" order="14" weight="0.32857144" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="SciView" order="3" />
+      <window_info active="true" anchor="right" id="SciView" order="3" sideWeight="0.49923897" visible="true" weight="0.32967034" />
       <window_info anchor="right" id="R Graphics" order="4" />
       <window_info anchor="right" id="R Packages" order="5" />
-      <window_info anchor="right" x="0" y="0" width="261" height="799" id="Documentation" order="6" side_tool="true" visible="true" weight="0.32911393" />
-      <window_info active="true" anchor="right" id="Database" order="7" visible="true" weight="0.2600536" />
+      <window_info anchor="right" x="0" y="0" width="261" height="799" id="Documentation" order="6" sideWeight="0.50076103" side_tool="true" visible="true" weight="0.32967034" />
+      <window_info anchor="right" id="Database" order="7" sideWeight="0.9589041" weight="0.25946277" />
       <window_info anchor="right" id="Maven" order="8" />
       <window_info anchor="right" id="Palette" order="9" />
       <window_info anchor="right" id="Capture Analysis" order="10" />
@@ -462,6 +492,27 @@
       <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
         <state>
           <filtering enabled="true" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="das://81a2a216-ae07-4a79-856c-8e0e293418af/schema/main/table/MARKET">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="das://cd85adbb-1d42-429d-83bc-5a04746ab295/schema/main/table/etf50">
+      <provider selected="true" editor-type-id="com.intellij.database.editor.DatabaseTableFileEditorProvider">
+        <state>
+          <filtering enabled="true" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/对冲+尾部风险/尾部风险/接口测试.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="17" column="36" lean-forward="true" selection-start-line="17" selection-start-column="36" selection-end-line="17" selection-end-column="36" />
         </state>
       </provider>
     </entry>
